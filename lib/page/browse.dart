@@ -91,18 +91,18 @@ class _BrowsePageState extends State<BrowsePage> {
                           scale: 2.0,
                         ),
                         title: 'MangaDex'),
-                    SourceCard(
-                        icon: Image.asset(
-                          'assets/logo/MangaSee/64x64.png',
-                          scale: 2.0,
-                        ),
-                        title: 'MangaSee'),
-                    SourceCard(
-                        icon: Image.asset(
-                          'assets/logo/Guya/64x64.png',
-                          scale: 2.0,
-                        ),
-                        title: 'Guya')
+                    // SourceCard(
+                    //     icon: Image.asset(
+                    //       'assets/logo/MangaSee/64x64.png',
+                    //       scale: 2.0,
+                    //     ),
+                    //     title: 'MangaSee'),
+                    // SourceCard(
+                    //     icon: Image.asset(
+                    //       'assets/logo/Guya/64x64.png',
+                    //       scale: 2.0,
+                    //     ),
+                    //     title: 'Guya')
                   ]),
                 ],
               ),

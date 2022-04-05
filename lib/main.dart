@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as acrylic;
-import 'package:fluentui_system_icons/fluentui_system_icons.dart' as ms;
+import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/page/library.dart';
 import 'package:xview/page/browse.dart';
@@ -13,6 +13,8 @@ import 'package:xview/page/source.dart';
 
 import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
+
+const routeHome = '/';
 
 // TODO: Refactor navigation
 
@@ -49,6 +51,29 @@ class MyApp extends StatelessWidget {
           return FluentApp(
             title: 'Dice',
             themeMode: appTheme.mode,
+            // onGenerateRoute: (config) {
+            //   late Widget page;
+            //   if (config.name == routeHome) {
+            //     page = const MyHomePage();
+            //     // } else if (settings.name == routeSettings) {
+            //     //   page = const SettingsScreen();
+            //     // } else if (settings.name!.startsWith(routePrefixDeviceSetup)) {
+            //     //   final subRoute =
+            //     //       settings.name!.substring(routePrefixDeviceSetup.length);
+            //     //   page = SetupFlow(
+            //     //     setupPageRoute: subRoute,
+            //     //   );
+            //   } else {
+            //     throw Exception('Unknown route: ${config.name}');
+            //   }
+
+            //   return FluentPageRoute<dynamic>(
+            //     builder: (context) {
+            //       return page;
+            //     },
+            //     settings: config,
+            //   );
+            // },
             darkTheme: ThemeData(
               animationCurve: Curves.easeInOut,
               typography: appTheme.typography.apply(displayColor: Colors.white),
@@ -139,13 +164,28 @@ class _MyHomePageState extends State<MyHomePage> {
             return Stack(
               children: [
                 SizedBox(height: appWindow.titleBarHeight, child: MoveWindow()),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(children: [
+                    // Opacity(
+                    //   opacity: 0.8,
+                    //   child: IconButton(
+                    //       icon: const Icon(
+                    //           fui.FluentIcons.arrow_left_24_regular,
+                    //           size: 14),
+                    //       onPressed: () {}),
+                    // ),
+                    // gapWidth(),
+                    const Text('Dice')
+                  ]),
+                ),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   MinimizeWindowButton(colors: buttonColors),
                   MaximizeWindowButton(colors: buttonColors),
                   CloseWindowButton(colors: closeButtonColors),
                 ]),
                 Padding(
-                  padding: EdgeInsets.only(top: appWindow.titleBarHeight),
+                  padding: EdgeInsets.only(top: appWindow.titleBarHeight + 10),
                   child: TabView(
                       currentIndex: tabs.index,
                       onChanged: (value) => tabs.index = value,
@@ -153,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         const Tab(
                             text: Text('Home'),
                             icon:
-                                Icon(ms.FluentIcons.home_24_regular, size: 14),
+                                Icon(fui.FluentIcons.home_24_regular, size: 14),
                             closeIcon: null),
                         ...tabs.tabs.map((e) => e.tab)
                       ],
@@ -182,8 +222,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 PaneItem(
                                     icon: Icon(
                                         _selected == 0
-                                            ? ms.FluentIcons.library_24_filled
-                                            : ms.FluentIcons.library_24_regular,
+                                            ? fui.FluentIcons.library_24_filled
+                                            : fui
+                                                .FluentIcons.library_24_regular,
                                         size: 20),
                                     title: const Text(
                                       'Library',
@@ -191,17 +232,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                 PaneItem(
                                     icon: Icon(
                                         _selected == 1
-                                            ? ms.FluentIcons
+                                            ? fui.FluentIcons
                                                 .compass_northwest_24_filled
-                                            : ms.FluentIcons
+                                            : fui.FluentIcons
                                                 .compass_northwest_24_regular,
                                         size: 20),
                                     title: const Text('Browse')),
                                 PaneItem(
                                     icon: Icon(
                                         _selected == 2
-                                            ? ms.FluentIcons.history_24_filled
-                                            : ms.FluentIcons.history_24_regular,
+                                            ? fui.FluentIcons.history_24_filled
+                                            : fui
+                                                .FluentIcons.history_24_regular,
                                         size: 20),
                                     title: const Text('History')),
                               ],
@@ -209,8 +251,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 PaneItem(
                                     icon: Icon(
                                         _selected == 3
-                                            ? ms.FluentIcons.settings_24_filled
-                                            : ms.FluentIcons
+                                            ? fui.FluentIcons.settings_24_filled
+                                            : fui.FluentIcons
                                                 .settings_24_regular,
                                         size: 20),
                                     title: const Text('Settings'))
