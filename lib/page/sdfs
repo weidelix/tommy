@@ -1,0 +1,530 @@
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:provider/provider.dart';
+import 'package:xview/page/source.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart' as ms;
+
+import 'package:xview/theme.dart';
+import 'package:xview/sources/manga_source.dart';
+import 'package:inview_notifier_list/inview_notifier_list.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
+class MangaState extends ChangeNotifier {
+  static const int CHAPTERS = 0;
+  static const int READ = 1;
+
+  int _index = 0;
+  int get index => _index;
+  set index(int i) {
+    _index = i;
+    notifyListeners();
+  }
+}
+
+class MangaPage extends StatefulWidget {
+  const MangaPage({required this.manga, Key? key}) : super(key: key);
+
+  final Manga manga;
+
+  @override
+  _MangaPageState createState() => _MangaPageState();
+}
+
+class _MangaPageState extends State<MangaPage> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+    final source = context.read<SourceState>();
+    final tab = context.watch<MangaState>();
+
+    return NavigationBody(index: tab.index, children: [
+      ListView.builder(
+          padding: const EdgeInsets.all(24.0),
+          key: PageStorageKey(widget.manga.id),
+          itemCount: widget.manga.chapters.length + 1,
+          itemBuilder: (context, index) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      spacing: 16.0,
+                      direction: Axis.horizontal,
+                      children: [
+                        Container(
+                          width: 210,
+                          height: 315,
+                          decoration:
+                              BoxDecoration(borderRadius: appTheme.brOuter),
+                          clipBehavior: Clip.antiAlias,
+                          child: GestureDetector(
+                            onSecondaryTap: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => ContentDialog(
+                                        title: const Text('Cover'),
+                                        content:
+                                            Wrap(runSpacing: 8.0, children: [
+                                          Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Text('Save image'),
+                                                IconButton(
+                                                    icon: const Icon(
+                                                      ms.FluentIcons
+                                                          .arrow_download_16_regular,
+                                                      size: 18,
+                                                    ),
+                                                    onPressed: () {
+                                                      showSnackbar(
+                                                          context,
+                                                          const Snackbar(
+                                                              content: Text(
+                                                                  'Not yet implemented')));
+                                                    })
+                                              ]),
+                                          Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Text('Share'),
+                                                IconButton(
+                                                    icon: const Icon(
+                                                      ms.FluentIcons
+                                                          .share_16_regular,
+                                                      size: 18,
+                                                    ),
+                                                    onPressed: () {
+                                                      showSnackbar(
+                                                          context,
+                                                          const Snackbar(
+                                                              content: Text(
+                                                                  'Not yet implemented')));
+                                                    })
+                                              ])
+                                        ]),
+                                        actions: [
+                                          Button(
+                                              child: const Text('Cancel'),
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              }),
+                                          // FilledButton(
+                                          //     child: const Text('Download'),
+                                          //     onPressed: () {})
+                                        ],
+                                      ));
+                            },
+                            child: Image.network(
+                              widget.manga.cover,
+                              width: 210,
+                              height: 315,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Wrap(
+                          spacing: 8.0,
+                          direction: Axis.vertical,
+                          children: [
+                            SizedBox(
+                                width: 600,
+                                child: Text(
+                                  widget.manga.title,
+                                  style: appTheme.title,
+                                )),
+                            Row(children: [
+                              Opacity(
+                                opacity: 0.7,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Author',
+                                      style: appTheme.body,
+                                    ),
+                                    Text(
+                                      '${widget.manga.source} • ${widget.manga.status}',
+                                      style: appTheme.body,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                gapHeight(),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Wrap(direction: Axis.vertical, spacing: 16.0, children: [
+                    SizedBox(
+                      width: 210,
+                      child: FilledButton(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(ms.FluentIcons.heart_16_regular, size: 18),
+                              SizedBox(
+                                width: 8.0,
+                              ),
+                              Text(
+                                'Add to library',
+                              ),
+                            ],
+                          ),
+                          onPressed: () {}),
+                    ),
+                    SizedBox(
+                      width: 210,
+                      child: Button(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(ms.FluentIcons.share_16_regular, size: 18),
+                              SizedBox(
+                                width: 8.0,
+                              ),
+                              Text('Share'),
+                            ],
+                          ),
+                          onPressed: () {}),
+                    ),
+                  ]),
+                  gapWidth(),
+                  Description(description: widget.manga.description)
+                ]),
+                gapHeight(),
+                //* Chapter list
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Text('Chapters', style: appTheme.subtitle)),
+                        Wrap(
+                          direction: Axis.horizontal,
+                          spacing: 8.0,
+                          children: [
+                            FilledButton(
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        ms.FluentIcons.play_20_filled,
+                                        size: 14,
+                                      ),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      Text('Resume',
+                                          style: appTheme.bodyStrong),
+                                    ]),
+                                onPressed: () {}),
+                            IconButton(
+                                icon: const Icon(
+                                    ms.FluentIcons.arrow_clockwise_16_regular,
+                                    size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.manga.chapters.clear();
+                                  });
+                                }),
+                            IconButton(
+                                icon: const Icon(
+                                  ms.FluentIcons.arrow_sort_16_regular,
+                                  size: 18,
+                                ),
+                                onPressed: () {})
+                          ],
+                        )
+                      ],
+                    ),
+                    gapHeight(),
+                    FutureBuilder<List<Chapter>>(
+                        future: widget.manga.chapters.isEmpty
+                            ? source.sources[widget.manga.source]!
+                                .fetchChapters(widget.manga.id)
+                            : null,
+                        builder: (_, snapshot) {
+                          switch (snapshot.connectionState) {
+                            case ConnectionState.waiting:
+                              return const SizedBox(
+                                  width: double.infinity,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(child: ProgressRing()),
+                                  ));
+                            default:
+                              if (snapshot.hasError) {
+                                showSnackbar(
+                                  context,
+                                  Snackbar(
+                                    content: Text(snapshot.error.toString()),
+                                  ),
+                                );
+                              }
+
+                              if (snapshot.connectionState !=
+                                  ConnectionState.none) {
+                                if (widget.manga.chapters.length !=
+                                    snapshot.data!.length) {
+                                  widget.manga.chapters.addAll(snapshot.data!);
+
+                                  widget.manga.chapters.sort((a, b) =>
+                                      double.parse(b.chapter)
+                                          .compareTo(double.parse(a.chapter)));
+                                }
+                              }
+
+                              return ChapterList(
+                                  chapters: widget.manga.chapters);
+                          }
+                        }),
+                  ],
+                ),
+              ],
+            );
+          }),
+      Center(
+          child: FilledButton(
+              child: const Text('Back'),
+              onPressed: () {
+                tab.index = tab.index == MangaState.CHAPTERS
+                    ? MangaState.READ
+                    : MangaState.CHAPTERS;
+              }))
+    ]);
+  }
+}
+
+class ChapterList extends StatefulWidget {
+  const ChapterList({
+    Key? key,
+    required this.chapters,
+  }) : super(key: key);
+
+  final List<Chapter> chapters;
+
+  @override
+  State<ChapterList> createState() => _ChapterListState();
+}
+
+class _ChapterListState extends State<ChapterList> {
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+    final List<List<Chapter>> chunks = [];
+
+    int size = 50;
+
+    //* https://stackoverflow.com/questions/22274033/how-do-i-split-or-chunk-a-list-into-equal-parts-with-dart
+    for (var start = 0; start < widget.chapters.length; start += size) {
+      var end = (start + size < widget.chapters.length)
+          ? start + size
+          : widget.chapters.length;
+      chunks.add(widget.chapters.sublist(start, end));
+    }
+
+    return Container(
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(borderRadius: appTheme.brInner),
+        width: double.infinity,
+        child: Column(
+            children: chunks.map((chapters) {
+          final chunk = ChaptersChunk(chunk: chapters);
+
+          VisibilityDetectorController.instance.notifyNow();
+
+          return chunk;
+        }).toList()));
+  }
+}
+
+class ChaptersChunk extends StatefulWidget {
+  const ChaptersChunk({required this.chunk, Key? key}) : super(key: key);
+
+  final List<Chapter> chunk;
+
+  @override
+  State<ChaptersChunk> createState() => _ChaptersChunkState();
+}
+
+class _ChaptersChunkState extends State<ChaptersChunk> {
+  bool visible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // final appTheme = context.read<AppTheme>();
+    double height = 70.0 * widget.chunk.length;
+
+    return VisibilityDetector(
+      key: Key(widget.chunk.first.id),
+      onVisibilityChanged: (visibilityInfo) {
+        try {
+          height = visibilityInfo.size.height;
+          setState(() {
+            visible = visibilityInfo.visibleFraction > 0.0;
+          });
+        } catch (identifier) {
+          height = 1.0;
+          visible = false;
+        }
+      },
+      child: Mica(
+        child: Visibility(
+          replacement: Container(
+            height: height,
+          ),
+          visible: true,
+          child: Column(
+              children:
+                  widget.chunk.map((e) => ChapterItem(chapter: e)).toList()),
+        ),
+      ),
+    );
+  }
+}
+
+class ChapterItem extends StatefulWidget {
+  const ChapterItem({Key? key, required this.chapter}) : super(key: key);
+
+  final Chapter chapter;
+
+  @override
+  State<ChapterItem> createState() => _ChapterItemState();
+}
+
+class _ChapterItemState extends State<ChapterItem> {
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+    final tabitem = context.read<MangaState>();
+
+    return SizedBox(
+      height: 70.0,
+      child: Button(
+        style: ButtonStyle(
+            padding: ButtonState.all(const EdgeInsets.all(16.0)),
+            border: ButtonState.all(BorderSide.none),
+            shape: ButtonState.all(const BeveledRectangleBorder())),
+        onPressed: () {
+          tabitem.index = MangaState.READ;
+        },
+        child: Row(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Chapter ${widget.chapter.chapter} ${widget.chapter.title != '' ? '- ' + widget.chapter.title : ''}',
+                  textAlign: TextAlign.left,
+                  style: appTheme.body,
+                ),
+                Opacity(
+                  opacity: 0.7,
+                  child: Text(
+                    '${widget.chapter.dateUploaded} • ${widget.chapter.scanlationGroup}',
+                    style: appTheme.caption,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Description extends StatefulWidget {
+  const Description({
+    Key? key,
+    required this.description,
+  }) : super(key: key);
+
+  final String description;
+
+  @override
+  State<Description> createState() => _DescriptionState();
+}
+
+class _DescriptionState extends State<Description> {
+  bool tap = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppTheme appTheme = context.read<AppTheme>();
+
+    final minDesc = SizedBox(
+      height: 40.0,
+      child: Text(
+        widget.description,
+        overflow: TextOverflow.fade,
+      ),
+    );
+
+    final maxDesc = Text(
+      widget.description,
+      style: appTheme.body,
+    );
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.start,
+      spacing: 8.0,
+      direction: Axis.vertical,
+      children: [
+        Text(
+          'Description',
+          style: appTheme.bodyStrongAccent,
+        ),
+        GestureDetector(
+            onTap: () {
+              setState(() {
+                tap = !tap;
+              });
+            },
+            child: Opacity(
+              opacity: 0.7,
+              child: SizedBox(
+                width: 800,
+                child: AnimatedCrossFade(
+                    sizeCurve: Curves.easeInOut,
+                    firstCurve: Curves.easeIn,
+                    secondCurve: Curves.easeOut,
+                    crossFadeState: !tap
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    duration: const Duration(milliseconds: 200),
+                    firstChild: minDesc,
+                    secondChild: maxDesc),
+              ),
+            )),
+        !tap
+            ? const SizedBox(
+                width: 800,
+                child: Center(child: Icon(FluentIcons.chevron_down, size: 10)),
+              )
+            : const SizedBox(
+                width: 800,
+                child: Center(child: Icon(FluentIcons.chevron_up, size: 10)),
+              )
+      ],
+    );
+  }
+}
