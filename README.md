@@ -1,6 +1,6 @@
 # xview
 
-A manga source aggregator.
+A manga reader for Windows.
 
 ## Getting Started
 
