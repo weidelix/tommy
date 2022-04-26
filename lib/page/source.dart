@@ -1,0 +1,116 @@
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:provider/provider.dart';
+
+import 'package:xview/sources/manga_source.dart';
+import 'package:xview/sources/MangaDex/mangadex.dart';
+
+class SourceState extends ChangeNotifier {
+  int page = 1;
+  bool isFinishedLoading = true;
+  double scrollOffset = 0.0;
+
+  final List<Manga> _latest = [];
+  List<Manga> get latest => _latest;
+
+  MangaSource? _activeSource;
+  MangaSource get activeSource => _activeSource!;
+  set activeSource(MangaSource source) {
+    _activeSource = source;
+    notifyListeners();
+  }
+
+  void fetchLatestData() {
+    if (isFinishedLoading) {
+      final data = activeSource
+          .parseLatestUpdates(activeSource.latestUpdatesRequest(++page));
+
+      data.whenComplete(() async {
+        _latest.addAll(await data);
+        isFinishedLoading = true;
+        notifyListeners();
+      });
+
+      isFinishedLoading = false;
+    }
+  }
+
+  final Map<String, MangaSource> sources = {'MangaDex': MangaDex()};
+
+  void reset() {
+    _latest.clear();
+    page = 1;
+    scrollOffset = 0.0;
+  }
+}
+
+class SourcePage extends StatefulWidget {
+  const SourcePage({Key? key}) : super(key: key);
+
+  @override
+  State<SourcePage> createState() => _SourcePageState();
+}
+
+class _SourcePageState extends State<SourcePage> {
+  @override
+  void dispose() {
+    _checkMemory();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final source = context.watch<SourceState>();
+    final controller =
+        ScrollController(initialScrollOffset: source.scrollOffset);
+
+    if (source.latest.isEmpty) {
+      source.fetchLatestData();
+    }
+
+    if (source.latest.isEmpty) {
+      return const Center(
+        child: ProgressRing(),
+      );
+    } else {
+      return NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          source.scrollOffset = notification.metrics.pixels;
+
+          if (notification.metrics.maxScrollExtent ==
+              notification.metrics.pixels) {
+            if (source.isFinishedLoading) {
+              source.fetchLatestData();
+            }
+          }
+          return true;
+        },
+        child: LayoutBuilder(
+          builder: (context, constrainst) => Scrollbar(
+            controller: controller,
+            child: GridView.builder(
+                cacheExtent: 0,
+                controller: controller,
+                padding: const EdgeInsets.only(right: 16.0),
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: (constrainst.maxWidth / 210).floor(),
+                  childAspectRatio: 180 / 270,
+                ),
+                itemCount: source.latest.length,
+                itemBuilder: (context, index) {
+                  return MangaItem(manga: source.latest[index]);
+                }),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _checkMemory() async {
+    var imageCache = PaintingBinding.instance!.imageCache;
+    if (imageCache!.currentSizeBytes >= 55 << 5) {
+      imageCache.clear();
+      imageCache.clearLiveImages();
+    }
+  }
+}
