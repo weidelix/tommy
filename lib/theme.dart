@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:system_theme/system_theme.dart';
+import 'package:provider/provider.dart';
 
 Widget gapWidth([double size = 16]) {
   return SizedBox(width: size);
@@ -10,49 +11,54 @@ Widget gapHeight([double size = 16.0]) {
 }
 
 Widget navigationItemBuilder(
-    {required String title,
+    {required BuildContext context,
+    required String title,
     String? subtitle,
     required Icon icon,
-    required void Function() cb,
-    required AppTheme appTheme}) {
+    required void Function() cb}) {
+  final appTheme = context.read<AppTheme>();
+
   return Container(
-    constraints: BoxConstraints(
-      minHeight: appTheme.itemHeight,
-    ),
+    constraints: BoxConstraints(minHeight: appTheme.itemHeight),
     child: Button(
       style: ButtonStyle(
-          border: ButtonState.all(BorderSide.none),
-          padding: ButtonState.all(EdgeInsets.zero)),
+        border: ButtonState.all(BorderSide.none),
+        padding: ButtonState.all(EdgeInsets.zero),
+        backgroundColor: ButtonState.resolveWith((states) {
+          return FilledButton.backgroundColor(
+              ThemeData(
+                  accentColor: FluentTheme.of(context)
+                      .micaBackgroundColor
+                      .toAccentColor()),
+              states);
+        }),
+      ),
       onPressed: cb,
-      child: Mica(
-        borderRadius: appTheme.brInner,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  icon,
-                  gapWidth(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: appTheme.bodyStrong),
-                      subtitle != null
-                          ? Opacity(
-                              opacity: 0.7,
-                              child:
-                                  Text(subtitle, style: appTheme.navSubtitle),
-                            )
-                          : const SizedBox.shrink(),
-                    ],
-                  ),
-                ],
-              ),
-              const Icon(FluentIcons.chevron_right, size: 10)
-            ],
-          ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                icon,
+                gapWidth(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: appTheme.body),
+                    subtitle != null
+                        ? Opacity(
+                            opacity: 0.7,
+                            child: Text(subtitle, style: appTheme.navSubtitle),
+                          )
+                        : const SizedBox.shrink(),
+                  ],
+                ),
+              ],
+            ),
+            const Icon(FluentIcons.chevron_right, size: 10)
+          ],
         ),
       ),
     ),
@@ -60,20 +66,22 @@ Widget navigationItemBuilder(
 }
 
 Widget itemBuilder(
-    {required String title,
+    {required BuildContext context,
+    required String title,
     String? subtitle,
     Icon? icon,
     Image? image,
     Widget? footer,
-    Widget? content,
-    required AppTheme appTheme}) {
+    Widget? content}) {
+  final appTheme = context.read<AppTheme>();
+
   return Container(
     constraints: BoxConstraints(minHeight: appTheme.itemHeight),
-    decoration: BoxDecoration(borderRadius: appTheme.brInner),
+    decoration: BoxDecoration(
+      borderRadius: appTheme.brInner,
+    ),
     clipBehavior: Clip.hardEdge,
     child: Mica(
-      // luminosityAlpha: 0.1,
-      // borderRadius: appTheme.brInner,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -90,7 +98,7 @@ Widget itemBuilder(
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: appTheme.bodyStrong),
+                        Text(title, style: appTheme.body),
                         subtitle != null
                             ? Opacity(
                                 opacity: 0.7,
@@ -141,9 +149,8 @@ class AppTheme extends ChangeNotifier {
           TextStyle(fontSize: 68, height: 1.35, fontWeight: FontWeight.w600));
   Typography get typography => _typography;
 
-  final double itemHeight = 60;
+  final double itemHeight = 70;
 
-  // final String? _fontFamily = 'Segoe UI';
   final String? _fontFamily = '';
   String? get fontFamily => _fontFamily;
 

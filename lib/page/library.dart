@@ -11,6 +11,7 @@ class LibraryPage extends StatelessWidget {
 
     return ScaffoldPage.scrollable(
         header: PageHeader(title: Text('Library', style: appTheme.title)),
+
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

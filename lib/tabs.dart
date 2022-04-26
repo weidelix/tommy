@@ -2,7 +2,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as ms;
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:xview/sources/manga_source.dart';
-import 'page/manga.dart';
+import 'page/manga/manga.dart';
 
 class TabItem {
   TabItem({required this.tab, required this.manga, required this.id});
@@ -10,7 +10,8 @@ class TabItem {
   final String id;
   final Tab tab;
   final Manga manga;
-  MangaState state = MangaState();
+
+  final MangaState state = MangaState();
   late Widget body = body = ChangeNotifierProvider.value(
       value: state, child: MangaPage(manga: manga));
 }

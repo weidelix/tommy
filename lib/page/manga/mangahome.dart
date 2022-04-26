@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:xview/page/source.dart';
@@ -6,29 +7,18 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:xview/theme.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:inview_notifier_list/inview_notifier_list.dart';
+import 'manga.dart';
 
-class MangaState extends ChangeNotifier {
-  static const int CHAPTERS = 0;
-  static const int READ = 1;
-
-  int _index = 0;
-  int get index => _index;
-  set index(int i) {
-    _index = i;
-    notifyListeners();
-  }
-}
-
-class MangaPage extends StatefulWidget {
-  const MangaPage({required this.manga, Key? key}) : super(key: key);
+class MangaHomePage extends StatefulWidget {
+  const MangaHomePage({required this.manga, Key? key}) : super(key: key);
 
   final Manga manga;
 
   @override
-  _MangaPageState createState() => _MangaPageState();
+  State<MangaHomePage> createState() => _MangaHomePageState();
 }
 
-class _MangaPageState extends State<MangaPage> {
+class _MangaHomePageState extends State<MangaHomePage> {
   @override
   void dispose() {
     super.dispose();
@@ -37,79 +27,68 @@ class _MangaPageState extends State<MangaPage> {
   @override
   Widget build(BuildContext context) {
     final source = context.read<SourceState>();
-    final tab = context.watch<MangaState>();
+    final mangaState = context.read<MangaState>();
+    final appTheme = context.read<AppTheme>();
 
-    return NavigationBody(index: tab.index, children: [
-      Stack(children: [
-        // SizedBox.expand(
-        //     child: Image.network(widget.manga.cover, fit: BoxFit.cover)),
-        // const Acrylic(
-        //   child: SizedBox.expand(),
-        //   blurAmount: 7.0,
-        // ),
-        FutureBuilder<List<Chapter>>(
-            future: widget.manga.chapters.isEmpty
-                ? source.sources[widget.manga.source]!
-                    .fetchChapters(widget.manga.id)
-                : null,
-            builder: (_, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return SizedBox(
-                    width: double.infinity,
-                    child: Mica(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Fetching details...'),
-                              gapHeight(),
-                              const ProgressBar()
-                            ]),
-                      ),
-                    ));
-              } else if (snapshot.hasError) {
-                showSnackbar(
-                  context,
-                  Snackbar(
-                    content: Text(snapshot.error.toString()),
-                  ),
-                );
-              } else if (snapshot.connectionState != ConnectionState.none) {
-                if (widget.manga.chapters.length != snapshot.data!.length) {
-                  widget.manga.chapters.addAll(snapshot.data!);
+    final controller =
+        ScrollController(initialScrollOffset: mangaState.homeScrollOffset);
 
-                  widget.manga.chapters.sort((a, b) => double.parse(b.chapter)
-                      .compareTo(double.parse(a.chapter)));
-                }
-              }
+    return FutureBuilder<List<Chapter>>(
+        future: widget.manga.chapters.isEmpty
+            ? source.sources[widget.manga.source]!
+                .fetchChapters(widget.manga.id)
+            : null,
+        builder: (_, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return SizedBox(
+                width: double.infinity,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Fetching details...', style: appTheme.bodyStrong),
+                      gapHeight(),
+                      const ProgressBar()
+                    ]));
+          } else if (snapshot.hasError) {
+            showSnackbar(
+              context,
+              Snackbar(
+                content: Text(snapshot.error.toString()),
+              ),
+            );
+          } else if (snapshot.connectionState != ConnectionState.none) {
+            if (widget.manga.chapters.length != snapshot.data!.length) {
+              widget.manga.chapters.addAll(snapshot.data!);
 
-              return ListView.builder(
+              widget.manga.chapters.sort((a, b) =>
+                  double.parse(b.chapter).compareTo(double.parse(a.chapter)));
+            }
+          }
+
+          return NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              mangaState.homeScrollOffset = notification.metrics.pixels;
+              return true;
+            },
+            child: Scrollbar(
+              isAlwaysShown: false,
+              controller: controller,
+              child: ListView.builder(
+                  controller: controller,
                   padding: const EdgeInsets.all(24.0),
-                  key: PageStorageKey(widget.manga.id),
                   itemCount: widget.manga.chapters.length + 1,
                   itemBuilder: (context, index) {
                     if (index != 0) {
                       return ChapterItem(
-                          chapter: widget.manga.chapters[index - 1]);
+                          chapter: widget.manga.chapters[index - 1],
+                          index: index - 1);
                     } else {
                       return MangaInfo(manga: widget.manga);
                     }
-                  });
-            })
-      ]),
-      Center(
-          child: IconButton(
-              icon: const Icon(
-                fui.FluentIcons.arrow_left_24_regular,
-                size: 20,
-              ),
-              onPressed: () {
-                tab.index = tab.index == MangaState.CHAPTERS
-                    ? MangaState.READ
-                    : MangaState.CHAPTERS;
-              }))
-    ]);
+                  }),
+            ),
+          );
+        });
   }
 }
 
@@ -123,6 +102,11 @@ class MangaInfo extends StatefulWidget {
 }
 
 class _MangaInfoState extends State<MangaInfo> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
@@ -187,8 +171,8 @@ class _MangaInfoState extends State<MangaInfo> {
                                 ],
                               ));
                     },
-                    child: Image.network(
-                      widget.manga.cover,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.manga.cover,
                       width: 210,
                       height: 315,
                       fit: BoxFit.cover,
@@ -294,11 +278,7 @@ class _MangaInfoState extends State<MangaInfo> {
                 IconButton(
                     icon: const Icon(fui.FluentIcons.arrow_clockwise_16_regular,
                         size: 18),
-                    onPressed: () {
-                      // setState(() {
-                      //   widget.manga.chapters.clear();
-                      // });
-                    }),
+                    onPressed: () {}),
                 gapWidth(8.0),
                 IconButton(
                     icon: const Icon(
@@ -317,24 +297,28 @@ class _MangaInfoState extends State<MangaInfo> {
 }
 
 class ChapterItem extends StatelessWidget {
-  const ChapterItem({Key? key, required this.chapter}) : super(key: key);
+  const ChapterItem({required this.chapter, required this.index, Key? key})
+      : super(key: key);
 
+  final int index;
   final Chapter chapter;
 
   @override
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
-    final tabitem = context.read<MangaState>();
+    final mangaState = context.read<MangaState>();
 
     return SizedBox(
       height: 70.0,
       child: Button(
         style: ButtonStyle(
-            padding: ButtonState.all(const EdgeInsets.all(16.0)),
-            border: ButtonState.all(BorderSide.none),
-            shape: ButtonState.all(const BeveledRectangleBorder())),
+          padding: ButtonState.all(const EdgeInsets.all(16.0)),
+          border: ButtonState.all(BorderSide.none),
+          shape: ButtonState.all(const BeveledRectangleBorder()),
+        ),
         onPressed: () {
-          tabitem.index = MangaState.READ;
+          mangaState.chapterIndex = index;
+          mangaState.setRoute(routeMangaRead);
         },
         child: Row(
           children: [
@@ -377,6 +361,11 @@ class Description extends StatefulWidget {
 
 class _DescriptionState extends State<Description> {
   bool tap = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

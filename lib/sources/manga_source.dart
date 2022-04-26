@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
@@ -22,7 +24,6 @@ class Manga {
   String status;
 
   List<Chapter> chapters = [];
-  // Future<List<Chapter>> Function()? fetchChapters;
 }
 
 class Chapter {
@@ -32,7 +33,8 @@ class Chapter {
       required this.uploader,
       required this.chapter,
       required this.dateUploaded,
-      required this.scanlationGroup});
+      required this.scanlationGroup,
+      required this.pages});
 
   final String id;
   final String title;
@@ -40,6 +42,7 @@ class Chapter {
   final String chapter;
   final String dateUploaded;
   final String scanlationGroup;
+  final int pages;
   bool isRead = false;
 }
 
@@ -48,7 +51,7 @@ abstract class MangaSource {
   Future<List<Manga>> parseLatestUpdates(Future<Response> res);
   Future<Response> latestUpdatesRequest([int page = 1]);
   Future<List<Chapter>> fetchChapters(String id);
-  // Future<Chapter> readChapter(Chapter chapter);
+  Future<List<String>> readChapter(Chapter chapter);
 }
 
 class MangaData {}
@@ -64,33 +67,54 @@ class MangaItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = context.read<TabsState>();
+    final appTheme = context.read<AppTheme>();
+    _checkMemory();
 
     return SizedBox(
-        width: 160,
+        width: 180,
+        height: 270,
         child: GestureDetector(
             onTap: () => tabs.openManga(manga),
             child: Column(
               children: [
                 Container(
-                    clipBehavior: Clip.hardEdge,
-                    decoration:
-                        BoxDecoration(borderRadius: BorderRadius.circular(4.0)),
-                    child: Image.network(
-                      manga.cover,
-                      width: 160,
-                      height: 240,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(borderRadius: appTheme.brOuter),
+                    child: CachedNetworkImage(
+                      errorWidget: (context, url, error) => const SizedBox(
+                          width: 180,
+                          height: 270,
+                          child: Mica(
+                            child: Icon(fui.FluentIcons.image_off_24_regular,
+                                size: 16),
+                          )),
+                      imageUrl: manga.cover,
+                      width: 180,
+                      height: 270,
+                      memCacheWidth: 180,
+                      memCacheHeight: 270,
+                      maxWidthDiskCache: 180,
+                      maxHeightDiskCache: 270,
                       fit: BoxFit.cover,
                     )),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.all(8.0),
                   child: Text(manga.title,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           overflow: TextOverflow.ellipsis,
-                          fontSize: 13)),
+                          fontSize: 15)),
                 ),
               ],
             )));
+  }
+
+  void _checkMemory() async {
+    var imageCache = PaintingBinding.instance!.imageCache;
+    if (imageCache!.currentSizeBytes >= 55 << 5) {
+      imageCache.clear();
+      imageCache.clearLiveImages();
+    }
   }
 }

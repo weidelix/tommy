@@ -53,12 +53,15 @@ class SourcePage extends StatefulWidget {
 class _SourcePageState extends State<SourcePage> {
   @override
   void dispose() {
+    _checkMemory();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final source = context.watch<SourceState>();
+    final controller =
+        ScrollController(initialScrollOffset: source.scrollOffset);
 
     if (source.latest.isEmpty) {
       source.fetchLatestData();
@@ -81,23 +84,33 @@ class _SourcePageState extends State<SourcePage> {
           }
           return true;
         },
-        child: ListView(
-            controller:
-                ScrollController(initialScrollOffset: source.scrollOffset),
-            children: [
-              Align(
-                  alignment: Alignment.topCenter,
-                  child: Wrap(
-                      alignment: WrapAlignment.start,
-                      runSpacing: 24.0,
-                      spacing: 24.0,
-                      children: [
-                        ...source.latest
-                            .map((e) => MangaItem(manga: e))
-                            .toList(),
-                      ])),
-            ]),
+        child: LayoutBuilder(
+          builder: (context, constrainst) => Scrollbar(
+            controller: controller,
+            child: GridView.builder(
+                cacheExtent: 0,
+                controller: controller,
+                padding: const EdgeInsets.only(right: 16.0),
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: (constrainst.maxWidth / 210).floor(),
+                  childAspectRatio: 180 / 270,
+                ),
+                itemCount: source.latest.length,
+                itemBuilder: (context, index) {
+                  return MangaItem(manga: source.latest[index]);
+                }),
+          ),
+        ),
       );
+    }
+  }
+
+  void _checkMemory() async {
+    var imageCache = PaintingBinding.instance!.imageCache;
+    if (imageCache!.currentSizeBytes >= 55 << 5) {
+      imageCache.clear();
+      imageCache.clearLiveImages();
     }
   }
 }

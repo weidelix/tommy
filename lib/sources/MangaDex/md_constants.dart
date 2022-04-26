@@ -1,6 +1,7 @@
 abstract class MDPaths {
   static const manga = '/manga';
   static const chapter = '/chapter';
+  static server({id}) => '/at-home/server/$id';
 }
 
 abstract class MDQueries {

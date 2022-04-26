@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/MangaDex/md_constants.dart';
+import 'package:xview/sources/MangaDex/md_helper.dart';
 
 /// Process [MangaDex] manga data to get required [Manga] data
 class MDManga {
@@ -46,37 +47,41 @@ class MangaDex implements MangaSource {
 
   @override
   Future<List<Manga>> parseLatestUpdates(Future<Response> res) async {
-    final response = await res;
-    final latest = jsonDecode(response.body)['data'] as List<dynamic>;
+    try {
+      final response = await res;
+      final latest = jsonDecode(response.body)['data'] as List<dynamic>;
 
-    final latestIds = latest.map((element) {
-      return (element['relationships'] as List<dynamic>)
-          .firstWhere((element) => element['type'] == 'manga')['id'];
-    }).toList();
+      final latestIds = latest.map((element) {
+        return (element['relationships'] as List<dynamic>)
+            .firstWhere((element) => element['type'] == 'manga')['id'];
+      }).toList();
 
-    final Map<String, dynamic> query = {};
+      final Map<String, dynamic> query = {};
 
-    query.addAll(MDQueries.limit(latestIds.length));
-    query.addAll(MDQueries.includes(['cover_art']));
-    query.addAll(MDQueries.ids(latestIds));
+      query.addAll(MDQueries.limit(latestIds.length));
+      query.addAll(MDQueries.includes(['cover_art']));
+      query.addAll(MDQueries.ids(latestIds));
 
-    final uri = Uri.https(MDConstants.host, MDPaths.manga, query);
-    var mangasData = jsonDecode((await get(uri)).body);
+      final uri = Uri.https(MDConstants.host, MDPaths.manga, query);
+      var mangasData = jsonDecode((await get(uri)).body);
 
-    List<Manga> mangas = [];
-    for (var manga in mangasData['data']) {
-      final data = MDManga(data: manga);
+      List<Manga> mangas = [];
+      for (var manga in mangasData['data']) {
+        final data = MDManga(data: manga);
 
-      mangas.add(Manga(
-          source: title,
-          id: data.id,
-          title: data.title,
-          cover: data.cover,
-          description: data.description,
-          status: data.status));
+        mangas.add(Manga(
+            source: title,
+            id: data.id,
+            title: data.title,
+            cover: data.cover,
+            description: data.description,
+            status: data.status));
+      }
+
+      return mangas;
+    } catch (identifier) {
+      return [];
     }
-
-    return mangas;
   }
 
   @override
@@ -113,7 +118,7 @@ class MangaDex implements MangaSource {
       final uri = Uri.https(MDConstants.host, MDPaths.chapter, query);
       final chaptersData = jsonDecode((await get(uri)).body);
 
-      // TODO: Optimize end checking
+      // TODO: Optimize checking of the last chapter
       if (chaptersData['data'].isNotEmpty) {
         for (var chapter in chaptersData['data']) {
           if (!chapters.any((element) => element.id == chapter['id'])) {
@@ -126,7 +131,8 @@ class MangaDex implements MangaSource {
                 dateUploaded: chapter['attributes']['updatedAt']
                     .split('T')[0]
                     .replaceAll('-', '/'),
-                scanlationGroup: 'Scanlation Group'));
+                scanlationGroup: 'Scanlation Group',
+                pages: chapter['attributes']['pages']));
           } else {
             stop = true;
           }
@@ -137,5 +143,20 @@ class MangaDex implements MangaSource {
     }
 
     return chapters;
+  }
+
+  @override
+  Future<List<String>> readChapter(Chapter chapter) async {
+    final List<String> pages = [];
+    final uri = Uri.https(MDConstants.host, MDPaths.server(id: chapter.id));
+    final pagesData = jsonDecode((await get(uri)).body);
+
+    for (int i = 0; i < chapter.pages; ++i) {
+      final data = PageData(pagesData);
+      pages.add(
+          '${data.baseUrl}/data-saver/${data.hash}/${data.images['data-saver']![i]}');
+    }
+
+    return pages;
   }
 }

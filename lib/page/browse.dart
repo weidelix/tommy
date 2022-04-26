@@ -6,15 +6,26 @@ import 'package:provider/provider.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/page/source.dart';
 
+const _routeBrowseHome = '/';
+const _routeBrowseSource = '/source';
+
+// TODO: Refactor
 class BrowseState extends ChangeNotifier {
   String title = 'Browse';
+  String _currentRoute = _routeBrowseHome;
+  String get currentRoute => _currentRoute;
+  set currentRoute(String value) {
+    if (value == _routeBrowseHome) {
+      navigatorKey.currentState!.pop();
+    } else if (value == _routeBrowseSource) {
+      navigatorKey.currentState!.pushNamed(_routeBrowseSource);
+    }
 
-  int _index = 0;
-  int get index => _index;
-  set index(int value) {
-    _index = value;
+    _currentRoute = value;
     notifyListeners();
   }
+
+  final navigatorKey = GlobalKey<NavigatorState>();
 }
 
 class BrowsePage extends StatefulWidget {
@@ -25,8 +36,6 @@ class BrowsePage extends StatefulWidget {
 }
 
 class _BrowsePageState extends State<BrowsePage> {
-  int index = 0;
-
   @override
   void dispose() {
     super.dispose();
@@ -44,7 +53,7 @@ class _BrowsePageState extends State<BrowsePage> {
           AnimatedSize(
               curve: Curves.easeInOut,
               duration: const Duration(milliseconds: 150),
-              child: browse.index != 0
+              child: browse.currentRoute != _routeBrowseHome
                   ? Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: IconButton(
@@ -57,58 +66,89 @@ class _BrowsePageState extends State<BrowsePage> {
 
                             setState(() {
                               browse.title = 'Browse';
-                              browse.index = 0;
+                              browse.currentRoute = _routeBrowseHome;
                             });
                           }),
                     )
                   : const SizedBox.shrink()),
           Text(browse.title, style: appTheme.title)
         ])),
-        content: NavigationBody(
-            transitionBuilder: (child, animation) {
-              return EntrancePageTransition(
-                  vertical: false,
-                  child: child,
-                  animation: animation,
-                  reverse: browse.index == 0);
-            },
-            index: browse.index,
-            children: [
-              ListView(
-                children: [
-                  Opacity(
-                    opacity: 0.8,
-                    child: Text(
-                      'Active',
-                      style: appTheme.bodyStrongAccent,
-                    ),
-                  ),
-                  gapHeight(),
-                  Wrap(spacing: 16.0, children: [
-                    SourceCard(
-                        icon: Image.asset(
-                          'assets/logo/MangaDex/64x64.png',
-                          scale: 2.0,
-                        ),
-                        title: 'MangaDex'),
-                    // SourceCard(
-                    //     icon: Image.asset(
-                    //       'assets/logo/MangaSee/64x64.png',
-                    //       scale: 2.0,
-                    //     ),
-                    //     title: 'MangaSee'),
-                    // SourceCard(
-                    //     icon: Image.asset(
-                    //       'assets/logo/Guya/64x64.png',
-                    //       scale: 2.0,
-                    //     ),
-                    //     title: 'Guya')
-                  ]),
-                ],
+        content: Navigator(
+          key: browse.navigatorKey,
+          initialRoute: browse._currentRoute,
+          onGenerateRoute: _onGenerateRoute,
+        ));
+  }
+
+  Route _onGenerateRoute(RouteSettings settings) {
+    late Widget page;
+    switch (settings.name) {
+      case _routeBrowseHome:
+        page = const BrowseHomePage();
+        break;
+      case _routeBrowseSource:
+        page = const SourcePage();
+        break;
+    }
+
+    return PageRouteBuilder(
+        transitionDuration: FluentTheme.of(context).mediumAnimationDuration,
+        reverseTransitionDuration: const Duration(milliseconds: 10),
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          final tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          final offsetAnimation = animation.drive(tween);
+
+          if (animation.status == AnimationStatus.forward) {
+            return FadeTransition(
+                opacity: animation,
+                child:
+                    SlideTransition(position: offsetAnimation, child: child));
+          }
+
+          return FadeTransition(
+              opacity: Tween(begin: 1.0, end: 0.0).animate(secondaryAnimation),
+              child: child);
+        });
+  }
+}
+
+class BrowseHomePage extends StatefulWidget {
+  const BrowseHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<BrowseHomePage> createState() => _BrowseHomePageState();
+}
+
+class _BrowseHomePageState extends State<BrowseHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+
+    return ListView(
+      children: [
+        Opacity(
+          opacity: 0.8,
+          child: Text(
+            'Active',
+            style: appTheme.bodyStrongAccent,
+          ),
+        ),
+        gapHeight(),
+        Wrap(spacing: 16.0, children: [
+          SourceCard(
+              icon: Image.asset(
+                'assets/logo/MangaDex/64x64.png',
+                scale: 2.0,
               ),
-              // SizedBox(height: 500, width: 500),
-              const SourcePage()
-            ]));
+              title: 'MangaDex')
+        ]),
+      ],
+    );
   }
 }
 
@@ -133,100 +173,83 @@ class _SourceCardState extends State<SourceCard> {
     final browse = context.read<BrowseState>();
     final appTheme = context.read<AppTheme>();
 
-    return Card(
-      // padding: EdgeInsets.zero,
-      child: SizedBox(
-        height: 150,
-        width: 250,
-        child: FutureBuilder<PaletteGenerator>(
-          future: PaletteGenerator.fromImageProvider(widget.icon.image),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return const Center(child: ProgressRing());
-              default:
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Center(
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    widget.icon,
-                                    const SizedBox(width: 8.0),
-                                    Text(widget.title,
-                                        style: appTheme.subtitle),
-                                  ]),
-                            ),
-                          ),
-                          // const SizedBox(height: 8.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: FilledButton(
-                                    style: ButtonStyle(
-                                        backgroundColor:
-                                            ButtonState.resolveWith((states) =>
-                                                FilledButton.backgroundColor(
-                                                    ThemeData(
-                                                        accentColor: snapshot
-                                                            .data!
-                                                            .vibrantColor!
-                                                            .color
-                                                            .toAccentColor()),
-                                                    states))),
-                                    child: const Text('Latest'),
-                                    onPressed: () {
-                                      // index = 1;
-                                      browse.index = 1;
-                                      browse.title = widget.title;
-                                      source.activeSource =
-                                          source.sources[widget.title]!;
-                                    }),
+    return Mica(
+      elevation: 10,
+      borderRadius: appTheme.brInner,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 150,
+          width: 250,
+          child: FutureBuilder<PaletteGenerator>(
+            future: PaletteGenerator.fromImageProvider(widget.icon.image),
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                  return const Center(child: ProgressRing());
+                default:
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Center(
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      widget.icon,
+                                      const SizedBox(width: 8.0),
+                                      Text(widget.title,
+                                          style: appTheme.subtitle),
+                                    ]),
                               ),
-                              const SizedBox(width: 8.0),
-                              IconButton(
-                                  icon: const Icon(
-                                      fui.FluentIcons.settings_24_regular,
-                                      size: 20),
-                                  onPressed: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (_) => ContentDialog(
-                                              title: Text('Settings',
-                                                  style: appTheme.subtitle),
-                                              content: const SizedBox(
-                                                  child:
-                                                      Text('Oops, wala pa!')),
-                                              actions: [
-                                                FilledButton(
-                                                    child: const Text('Apply'),
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    }),
-                                                Button(
-                                                    child: const Text('Cancel'),
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    })
-                                              ],
-                                            ));
-                                  })
-                            ],
-                          ),
-                        ]),
-                  );
-                }
-            }
-          },
+                            ),
+                            // const SizedBox(height: 8.0),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: FilledButton(
+                                      style: ButtonStyle(
+                                          backgroundColor: ButtonState
+                                              .resolveWith((states) =>
+                                                  FilledButton.backgroundColor(
+                                                      ThemeData(
+                                                          accentColor: snapshot
+                                                              .data!
+                                                              .vibrantColor!
+                                                              .color
+                                                              .toAccentColor()),
+                                                      states))),
+                                      child: const Text('Latest'),
+                                      onPressed: () {
+                                        // index = 1;
+                                        browse.title = widget.title;
+                                        browse.currentRoute =
+                                            _routeBrowseSource;
+                                        source.activeSource =
+                                            source.sources[widget.title]!;
+                                      }),
+                                ),
+                                const SizedBox(width: 8.0),
+                                IconButton(
+                                    icon: const Icon(
+                                        fui.FluentIcons.settings_24_regular,
+                                        size: 20),
+                                    onPressed: () {})
+                              ],
+                            ),
+                          ]),
+                    );
+                  }
+              }
+            },
+          ),
         ),
       ),
     );

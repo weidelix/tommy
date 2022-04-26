@@ -4,6 +4,21 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
 
+const routeSettings = 'Settings';
+const routeGeneral = 'General';
+const routePersonalization = 'Personalization';
+
+class SettingsState extends ChangeNotifier {
+  final navigatorKey = GlobalKey<NavigatorState>();
+  int depth = 0;
+  String _currentRoute = routeSettings;
+  String get currentRoute => _currentRoute;
+  set currentRoute(String value) {
+    _currentRoute = value;
+    notifyListeners();
+  }
+}
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
@@ -12,10 +27,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final List<String> routes = ['Settings', 'General', 'Personalization'];
-
-  int _index = 0;
-
   @override
   void dispose() {
     super.dispose();
@@ -25,71 +36,142 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
 
-    return ScaffoldPage.scrollable(
-      header: PageHeader(
-        title: Row(children: [
-          AnimatedSize(
-              curve: Curves.easeInOut,
-              duration: const Duration(milliseconds: 150),
-              child: _index != 0
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: IconButton(
-                          icon: const Icon(
-                            fui.FluentIcons.arrow_left_24_regular,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() => _index = 0);
-                          }),
-                    )
-                  : const SizedBox.shrink()),
-          Text(routes[_index], style: appTheme.title)
-        ]),
-      ),
-      children: [
-        NavigationBody(
-            index: _index,
-            transitionBuilder: (child, animation) {
-              return EntrancePageTransition(
-                  vertical: false,
-                  child: child,
-                  animation: animation,
-                  reverse: _index < 0);
-            },
-            children: [
-              _options(appTheme),
-              const General(),
-              const Personalization(),
-            ])
-      ],
+    return ChangeNotifierProvider(
+      create: (_) => SettingsState(),
+      builder: (context, _) {
+        final settings = context.watch<SettingsState>();
+
+        return ScaffoldPage.withPadding(
+          header: PageHeader(
+            title: Row(children: [
+              AnimatedSize(
+                  curve: Curves.easeInOut,
+                  duration: const Duration(milliseconds: 150),
+                  child: settings.depth != 0
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: IconButton(
+                              icon: const Icon(
+                                fui.FluentIcons.arrow_left_24_regular,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                settings.depth--;
+                                settings.navigatorKey.currentState!.pop();
+
+                                setState(() {
+                                  settings.currentRoute = settings.depth == 0
+                                      ? routeSettings
+                                      : settings.currentRoute;
+                                });
+                              }),
+                        )
+                      : const SizedBox.shrink()),
+              Text((settings.currentRoute), style: appTheme.title)
+            ]),
+          ),
+          content: Navigator(
+            key: settings.navigatorKey,
+            initialRoute: routeSettings,
+            onGenerateRoute: _onGenerateRoute,
+          ),
+        );
+      },
     );
   }
 
-  Widget _options(AppTheme appTheme) {
+  Route _onGenerateRoute(RouteSettings settings) {
+    late Widget page;
+
+    switch (settings.name) {
+      case routeSettings:
+        page = const SettingsOptions();
+        break;
+      case routeGeneral:
+        page = const General();
+        break;
+      case routePersonalization:
+        page = const Personalization();
+        break;
+    }
+
+    return PageRouteBuilder(
+        transitionDuration: FluentTheme.of(context).mediumAnimationDuration,
+        reverseTransitionDuration:
+            FluentTheme.of(context).mediumAnimationDuration,
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          final curve = CurveTween(curve: Curves.easeInOut);
+          final tweenForward = Tween(begin: begin, end: end).chain(curve);
+
+          if (animation.status == AnimationStatus.forward) {
+            return SlideTransition(
+                position: animation.drive(tweenForward),
+                child: FadeTransition(
+                    opacity: Tween(begin: 0.0, end: 1.0).animate(animation),
+                    child: child));
+          } else if (animation.status == AnimationStatus.reverse) {
+            return SlideTransition(
+                position: animation.drive(tweenForward),
+                child: FadeTransition(
+                    opacity: Tween(begin: 0.0, end: 1.0).animate(animation),
+                    child: child));
+          }
+
+          return SlideTransition(
+              position: Tween(begin: Offset.zero, end: const Offset(-1.0, 0.0))
+                  .chain(curve)
+                  .animate(secondaryAnimation),
+              child: FadeTransition(
+                  opacity:
+                      Tween(begin: 1.0, end: 0.0).animate(secondaryAnimation),
+                  child: child));
+        });
+  }
+}
+
+class SettingsOptions extends StatefulWidget {
+  const SettingsOptions({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsOptions> createState() => _SettingsOptionsState();
+}
+
+class _SettingsOptionsState extends State<SettingsOptions> {
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+    final settings = context.read<SettingsState>();
+
     return Wrap(runSpacing: appTheme.itemSpacing, children: [
       // General
       navigationItemBuilder(
+          context: context,
           title: 'General',
           subtitle: 'Max tab count & more',
           icon: const Icon(fui.FluentIcons.app_generic_24_regular, size: 21),
           cb: () {
+            settings.depth++;
+            settings.navigatorKey.currentState!.pushNamed(routeGeneral);
             setState(() {
-              _index = 1;
+              settings.currentRoute = routeGeneral;
             });
-          },
-          appTheme: appTheme),
+          }),
       // Personalization
       navigationItemBuilder(
+          context: context,
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
           icon: const Icon(fui.FluentIcons.paint_brush_24_regular, size: 21),
           cb: () {
+            settings.depth++;
+            settings.navigatorKey.currentState!.pushNamed(routePersonalization);
             setState(() {
-              _index = 2;
+              settings.currentRoute = routePersonalization;
             });
-          },
-          appTheme: appTheme),
+          }),
     ]);
   }
 }
@@ -109,19 +191,18 @@ class _GeneralState extends State<General> {
 
   @override
   Widget build(BuildContext context) {
-    final appTheme = context.read<AppTheme>();
     final tabs = context.read<TabsState>();
 
-    return Wrap(runSpacing: 8.0, children: [
-      Text('Tabs', style: appTheme.bodyStrongAccent),
+    return Wrap(runSpacing: 4.0, children: [
+      // Text('Tabs', style: appTheme.bodyStrongAccent),
       itemBuilder(
+          context: context,
           title: 'Max tab count',
           icon: const Icon(fui.FluentIcons.tabs_24_regular, size: 21),
           footer: SizedBox(
             width: 55,
             child: Combobox<int>(
-                comboboxColor: Colors.magenta,
-                value: 8,
+                value: tabs.maxTabCount,
                 items: const [
                   ComboboxItem<int>(child: Text('8'), value: 8),
                   ComboboxItem<int>(child: Text('12'), value: 12),
@@ -132,13 +213,13 @@ class _GeneralState extends State<General> {
                     tabs.maxTabCount = value!;
                   });
                 }),
-          ),
-          appTheme: appTheme),
+          )),
       itemBuilder(
-          title: 'Clear tabs on exit',
-          icon: const Icon(fui.FluentIcons.delete_24_regular, size: 21),
-          footer: ToggleSwitch(checked: true, onChanged: (value) {}),
-          appTheme: appTheme)
+        context: context,
+        title: 'Clear tabs on exit',
+        icon: const Icon(fui.FluentIcons.delete_24_regular, size: 21),
+        footer: ToggleSwitch(checked: true, onChanged: (value) {}),
+      )
     ]);
   }
 }
@@ -166,9 +247,9 @@ class _PersonalizationState extends State<Personalization> {
       runSpacing: appTheme.itemSpacing,
       children: [
         itemBuilder(
+          context: context,
           title: 'Dark mode',
           icon: const Icon(fui.FluentIcons.weather_moon_24_regular, size: 21),
-          appTheme: appTheme,
           footer: SizedBox(
             width: 170,
             // height: 28,
@@ -192,9 +273,9 @@ class _PersonalizationState extends State<Personalization> {
           ),
         ),
         itemBuilder(
+          context: context,
           title: 'Theme',
           icon: const Icon(fui.FluentIcons.color_24_regular, size: 21),
-          appTheme: appTheme,
           content: SizedBox(
             // width: 800,
             height: 205,
@@ -258,13 +339,12 @@ class _PersonalizationState extends State<Personalization> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
-                height: 140,
-                width: double.infinity,
-                child: Mica(
-                  borderRadius: appTheme.brInner,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+              Mica(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 130,
+                    width: double.infinity,
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,13 +353,11 @@ class _PersonalizationState extends State<Personalization> {
                               backgroundColor: accent[0],
                               borderRadius: appTheme.brInner,
                               child: const SizedBox(width: 50, height: 20)),
-                          Text(
+                          const Text(
                               '________________\n________________\n________________\n________',
-                              textAlign: TextAlign.justify,
+                              textAlign: TextAlign.start,
                               style: TextStyle(
-                                  height: 1,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: appTheme.fontFamily)),
+                                  height: 1, fontWeight: FontWeight.w900)),
                           // gapHeight(),
                           Align(
                             alignment: Alignment.centerRight,
