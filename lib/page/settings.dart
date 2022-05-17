@@ -2,7 +2,6 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:xview/main.dart';
-import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -74,36 +73,10 @@ class _SettingsGeneralState extends State<SettingsGeneral> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = context.read<TabsState>();
     final appTheme = context.read<AppTheme>();
 
-    return Wrap(runSpacing: 4.0, children: [
+    return Wrap(runSpacing: 4.0, children: const [
       // Text('Tabs', style: appTheme.bodyStrongAccent),
-      itemBuilder(
-          context: context,
-          title: 'Max tab count',
-          icon: fui.FluentIcons.tabs_24_regular,
-          footer: SizedBox(
-            width: 55,
-            child: Combobox<int>(
-                value: tabs.maxTabCount,
-                items: const [
-                  ComboboxItem<int>(child: Text('8'), value: 8),
-                  ComboboxItem<int>(child: Text('12'), value: 12),
-                  ComboboxItem<int>(child: Text('16'), value: 16),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    tabs.maxTabCount = value!;
-                  });
-                }),
-          )),
-      itemBuilder(
-        context: context,
-        title: 'Clear tabs on exit',
-        icon: fui.FluentIcons.delete_24_regular,
-        footer: ToggleSwitch(checked: true, onChanged: (value) {}),
-      )
     ]);
   }
 }

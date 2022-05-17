@@ -4,7 +4,6 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:navigation_history_observer/navigation_history_observer.dart';
-import 'package:xview/custom_tabbed_view/custom_tabbed_view.dart';
 import 'dart:async';
 
 import 'package:xview/page/library.dart';
@@ -13,7 +12,6 @@ import 'package:xview/page/history.dart';
 import 'package:xview/page/settings.dart';
 import 'package:xview/page/source.dart';
 
-import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
 
 const routeSubPageSuffix = 'Sub';
@@ -100,24 +98,6 @@ class _LayoutState extends State<Layout> {
       iconNormal: const Color.fromARGB(255, 145, 145, 145),
       iconMouseOver: Colors.white);
 
-  final PageStorageBucket _bucket = PageStorageBucket();
-  final pages = [
-    RootPage(
-        key: const PageStorageKey<String>('pageOne'),
-        onChange: () {
-          // setState(() {
-          //   _canGoBack = true;
-          // });
-        }),
-    ScaffoldPage(
-      key: const PageStorageKey<String>('pageTwo'),
-      content: Scrollbar(
-          child: ListView(children: const [
-        SizedBox(width: double.infinity, height: 2000)
-      ])),
-    )
-    // ...tabs.tabs.map((e) => e.body)
-  ];
   bool _canGoBack = false;
   Key uniqueKey = UniqueKey();
 
@@ -128,55 +108,21 @@ class _LayoutState extends State<Layout> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => TabsState()),
-          ChangeNotifierProvider(create: (_) => SourceState()),
-        ],
+    return ChangeNotifierProvider(
+        create: (_) => SourceState(),
         builder: (context, _) {
-          final tabs = context.watch<TabsState>();
           return Mica(
-            child: Stack(
-              children: [
-                // ignore: sized_box_for_whitespace
-                Container(
-                    height: appWindow.titleBarHeight + 10, child: MoveWindow()),
-                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  MinimizeWindowButton(colors: _buttonColors),
-                  MaximizeWindowButton(colors: _buttonColors),
-                  CloseWindowButton(colors: _closeButtonColors),
-                ]),
-                CustomTabView(
-                    // TODO: Remove bucket
-                    bucket: _bucket,
-                    header: IconButton(
-                        iconButtonMode: IconButtonMode.large,
-                        icon: const Icon(fui.FluentIcons.arrow_left_24_filled),
-                        onPressed: _canGoBack
-                            ? () async {
-                                _canGoBack = await RootNavigation().back();
-                                context.read<SourceState>().reset();
-                                setState(() => _canGoBack);
-                              }
-                            : null),
-                    currentIndex: tabs.index,
-                    onChanged: (value) {
-                      tabs.index = value;
-                    },
-                    tabs: [
-                      const Tab(
-                          text: Text('Home'),
-                          icon: Icon(fui.FluentIcons.home_24_regular, size: 14),
-                          closeIcon: null),
-                      ...tabs.tabs.map((e) => e.tab)
-                    ],
-                    bodies: [
-                      RootPage(onChange: _onChange),
-                      ...tabs.tabs.map((e) => e.body)
-                    ]),
-              ],
-            ),
-          );
+              child: Stack(children: [
+            // ignore: sized_box_for_whitespace
+            Container(
+                height: appWindow.titleBarHeight + 10, child: MoveWindow()),
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              MinimizeWindowButton(colors: _buttonColors),
+              MaximizeWindowButton(colors: _buttonColors),
+              CloseWindowButton(colors: _closeButtonColors),
+            ]),
+            RootPage(onChange: _onChange),
+          ]));
         });
   }
 

@@ -3,9 +3,8 @@ import 'package:http/http.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
-import 'package:xview/global_image_cache_manager.dart';
 
-import 'package:xview/tabs.dart';
+import 'package:xview/global_image_cache_manager.dart';
 import 'package:xview/theme.dart';
 
 class Manga {
@@ -67,7 +66,6 @@ class MangaItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = context.read<TabsState>();
     final appTheme = context.read<AppTheme>();
     _checkMemory();
 
@@ -75,7 +73,7 @@ class MangaItem extends StatelessWidget {
         width: 180,
         height: 270,
         child: GestureDetector(
-            onTap: () => tabs.openManga(manga),
+            onTap: () {},
             child: Column(
               children: [
                 Container(
