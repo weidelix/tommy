@@ -14,23 +14,41 @@ Widget navigationItemBuilder(
     {required BuildContext context,
     required String title,
     String? subtitle,
-    required Icon icon,
+    required IconData icon,
     required void Function() cb}) {
   final appTheme = context.read<AppTheme>();
 
   return Container(
-    constraints: BoxConstraints(minHeight: appTheme.itemHeight),
+    constraints: appTheme.itemConstraints,
     child: Button(
       style: ButtonStyle(
         border: ButtonState.all(BorderSide.none),
         padding: ButtonState.all(EdgeInsets.zero),
-        backgroundColor: ButtonState.resolveWith((states) {
-          return FilledButton.backgroundColor(
-              ThemeData(
-                  accentColor: FluentTheme.of(context)
-                      .micaBackgroundColor
-                      .toAccentColor()),
-              states);
+        backgroundColor: ButtonState.resolveWith((Set<ButtonStates> states) {
+          final theme = FluentTheme.of(context);
+          final color = theme.micaBackgroundColor.toAccentColor();
+
+          if (states.isDisabled) {
+            if (theme.brightness.isDark) {
+              return const Color(0xFF434343);
+            } else {
+              return const Color(0xFFBFBFBF);
+            }
+          } else if (states.isPressing) {
+            if (theme.brightness.isDark) {
+              return color.dark;
+            } else {
+              return color.light;
+            }
+          } else if (states.isHovering) {
+            if (theme.brightness.isDark) {
+              return color.light;
+            } else {
+              return color.dark;
+            }
+          }
+
+          return color;
         }),
       ),
       onPressed: cb,
@@ -41,9 +59,10 @@ Widget navigationItemBuilder(
           children: [
             Row(
               children: [
-                icon,
+                Icon(icon, size: 24),
                 gapWidth(),
                 Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: appTheme.body),
@@ -69,59 +88,58 @@ Widget itemBuilder(
     {required BuildContext context,
     required String title,
     String? subtitle,
-    Icon? icon,
-    Image? image,
+    IconData? icon,
+    // Image? image,
     Widget? footer,
     Widget? content}) {
   final appTheme = context.read<AppTheme>();
 
   return Container(
-    constraints: BoxConstraints(minHeight: appTheme.itemHeight),
+    constraints: appTheme.itemConstraints,
     decoration: BoxDecoration(
-      borderRadius: appTheme.brInner,
-    ),
+        borderRadius: appTheme.brInner,
+        color: FluentTheme.of(context).micaBackgroundColor.toAccentColor()),
     clipBehavior: Clip.hardEdge,
-    child: Mica(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    icon ?? image ?? const SizedBox.shrink(),
-                    gapWidth(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(title, style: appTheme.body),
-                        subtitle != null
-                            ? Opacity(
-                                opacity: 0.7,
-                                child:
-                                    Text(subtitle, style: appTheme.navSubtitle),
-                              )
-                            : const SizedBox.shrink(),
-                      ],
-                    ),
-                  ],
-                ),
-                footer ?? const SizedBox.shrink()
-              ],
-            ),
-            content != null
-                ? Column(
-                    children: [gapHeight(), content],
-                  )
-                : const SizedBox.shrink()
-          ],
-        ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  icon != null ? Icon(icon, size: 24) : const SizedBox.shrink(),
+                  gapWidth(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: appTheme.body),
+                      subtitle != null
+                          ? Opacity(
+                              opacity: 0.7,
+                              child:
+                                  Text(subtitle, style: appTheme.navSubtitle),
+                            )
+                          : const SizedBox.shrink(),
+                    ],
+                  ),
+                ],
+              ),
+              footer ?? const SizedBox.shrink()
+            ],
+          ),
+          content != null
+              ? Column(
+                  children: [gapHeight(), content],
+                )
+              : const SizedBox.shrink()
+        ],
       ),
     ),
+    // ),
   );
 }
 
@@ -149,7 +167,7 @@ class AppTheme extends ChangeNotifier {
           TextStyle(fontSize: 68, height: 1.35, fontWeight: FontWeight.w600));
   Typography get typography => _typography;
 
-  final double itemHeight = 70;
+  final itemConstraints = const BoxConstraints(minHeight: 70);
 
   final String? _fontFamily = '';
   String? get fontFamily => _fontFamily;
@@ -205,8 +223,8 @@ class AppTheme extends ChangeNotifier {
       SystemTheme.accentInstance.accent.toAccentColor()
     ],
     'Fluent': [
-      SystemTheme.accentInstance.defaultAccentColor.toAccentColor(),
-      SystemTheme.accentInstance.defaultAccentColor.toAccentColor()
+      kDefaultSystemAccentColor.toAccentColor(),
+      kDefaultSystemAccentColor.toAccentColor(),
     ],
     'Autumn': [Colors.accentColors[2], Colors.accentColors[1]],
     'Ocean': [Colors.accentColors[6], Colors.accentColors[5]],

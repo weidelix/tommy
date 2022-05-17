@@ -10,10 +10,6 @@ class HistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
 
-    return ScaffoldPage.scrollable(
-        header: PageHeader(
-          title: Text('History', style: appTheme.title),
-        ),
-        children: const []);
+    return ListView(children: const []);
   }
 }

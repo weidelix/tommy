@@ -1,23 +1,9 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
+import 'package:xview/main.dart';
 import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
-
-const routeSettings = 'Settings';
-const routeGeneral = 'General';
-const routePersonalization = 'Personalization';
-
-class SettingsState extends ChangeNotifier {
-  final navigatorKey = GlobalKey<NavigatorState>();
-  int depth = 0;
-  String _currentRoute = routeSettings;
-  String get currentRoute => _currentRoute;
-  set currentRoute(String value) {
-    _currentRoute = value;
-    notifyListeners();
-  }
-}
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -27,163 +13,60 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  late List<Widget> itemsList;
+
   @override
   void dispose() {
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final appTheme = context.read<AppTheme>();
-
-    return ChangeNotifierProvider(
-      create: (_) => SettingsState(),
-      builder: (context, _) {
-        final settings = context.watch<SettingsState>();
-
-        return ScaffoldPage.withPadding(
-          header: PageHeader(
-            title: Row(children: [
-              AnimatedSize(
-                  curve: Curves.easeInOut,
-                  duration: const Duration(milliseconds: 150),
-                  child: settings.depth != 0
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: IconButton(
-                              icon: const Icon(
-                                fui.FluentIcons.arrow_left_24_regular,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                settings.depth--;
-                                settings.navigatorKey.currentState!.pop();
-
-                                setState(() {
-                                  settings.currentRoute = settings.depth == 0
-                                      ? routeSettings
-                                      : settings.currentRoute;
-                                });
-                              }),
-                        )
-                      : const SizedBox.shrink()),
-              Text((settings.currentRoute), style: appTheme.title)
-            ]),
-          ),
-          content: Navigator(
-            key: settings.navigatorKey,
-            initialRoute: routeSettings,
-            onGenerateRoute: _onGenerateRoute,
-          ),
-        );
-      },
-    );
-  }
-
-  Route _onGenerateRoute(RouteSettings settings) {
-    late Widget page;
-
-    switch (settings.name) {
-      case routeSettings:
-        page = const SettingsOptions();
-        break;
-      case routeGeneral:
-        page = const General();
-        break;
-      case routePersonalization:
-        page = const Personalization();
-        break;
-    }
-
-    return PageRouteBuilder(
-        transitionDuration: FluentTheme.of(context).mediumAnimationDuration,
-        reverseTransitionDuration:
-            FluentTheme.of(context).mediumAnimationDuration,
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          final curve = CurveTween(curve: Curves.easeInOut);
-          final tweenForward = Tween(begin: begin, end: end).chain(curve);
-
-          if (animation.status == AnimationStatus.forward) {
-            return SlideTransition(
-                position: animation.drive(tweenForward),
-                child: FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0).animate(animation),
-                    child: child));
-          } else if (animation.status == AnimationStatus.reverse) {
-            return SlideTransition(
-                position: animation.drive(tweenForward),
-                child: FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0).animate(animation),
-                    child: child));
-          }
-
-          return SlideTransition(
-              position: Tween(begin: Offset.zero, end: const Offset(-1.0, 0.0))
-                  .chain(curve)
-                  .animate(secondaryAnimation),
-              child: FadeTransition(
-                  opacity:
-                      Tween(begin: 1.0, end: 0.0).animate(secondaryAnimation),
-                  child: child));
-        });
-  }
-}
-
-class SettingsOptions extends StatefulWidget {
-  const SettingsOptions({Key? key}) : super(key: key);
-
-  @override
-  State<SettingsOptions> createState() => _SettingsOptionsState();
-}
-
-class _SettingsOptionsState extends State<SettingsOptions> {
-  @override
-  Widget build(BuildContext context) {
-    final appTheme = context.read<AppTheme>();
-    final settings = context.read<SettingsState>();
-
-    return Wrap(runSpacing: appTheme.itemSpacing, children: [
-      // General
+  void initState() {
+    itemsList = [
       navigationItemBuilder(
           context: context,
           title: 'General',
           subtitle: 'Max tab count & more',
-          icon: const Icon(fui.FluentIcons.app_generic_24_regular, size: 21),
+          icon: fui.FluentIcons.app_generic_24_regular,
           cb: () {
-            settings.depth++;
-            settings.navigatorKey.currentState!.pushNamed(routeGeneral);
-            setState(() {
-              settings.currentRoute = routeGeneral;
-            });
+            // setState(() => settings.goTo(routeGeneral));
+            RootNavigation().push(routeSettingsGeneral);
           }),
       // Personalization
       navigationItemBuilder(
           context: context,
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
-          icon: const Icon(fui.FluentIcons.paint_brush_24_regular, size: 21),
+          icon: fui.FluentIcons.paint_brush_24_regular,
           cb: () {
-            settings.depth++;
-            settings.navigatorKey.currentState!.pushNamed(routePersonalization);
-            setState(() {
-              settings.currentRoute = routePersonalization;
-            });
+            // setState(() => settings.goTo(routePersonalization));
+            RootNavigation().push(routeSettingsPersonalization);
           }),
-    ]);
+    ];
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+
+    return ListView.separated(
+      separatorBuilder: ((context, index) =>
+          SizedBox(height: appTheme.itemSpacing)),
+      itemCount: itemsList.length,
+      itemBuilder: (context, index) => itemsList[index],
+    );
   }
 }
 
-class General extends StatefulWidget {
-  const General({Key? key}) : super(key: key);
+class SettingsGeneral extends StatefulWidget {
+  const SettingsGeneral({Key? key}) : super(key: key);
 
   @override
-  _GeneralState createState() => _GeneralState();
+  _SettingsGeneralState createState() => _SettingsGeneralState();
 }
 
-class _GeneralState extends State<General> {
+class _SettingsGeneralState extends State<SettingsGeneral> {
   @override
   void dispose() {
     super.dispose();
@@ -192,13 +75,14 @@ class _GeneralState extends State<General> {
   @override
   Widget build(BuildContext context) {
     final tabs = context.read<TabsState>();
+    final appTheme = context.read<AppTheme>();
 
     return Wrap(runSpacing: 4.0, children: [
       // Text('Tabs', style: appTheme.bodyStrongAccent),
       itemBuilder(
           context: context,
           title: 'Max tab count',
-          icon: const Icon(fui.FluentIcons.tabs_24_regular, size: 21),
+          icon: fui.FluentIcons.tabs_24_regular,
           footer: SizedBox(
             width: 55,
             child: Combobox<int>(
@@ -217,21 +101,22 @@ class _GeneralState extends State<General> {
       itemBuilder(
         context: context,
         title: 'Clear tabs on exit',
-        icon: const Icon(fui.FluentIcons.delete_24_regular, size: 21),
+        icon: fui.FluentIcons.delete_24_regular,
         footer: ToggleSwitch(checked: true, onChanged: (value) {}),
       )
     ]);
   }
 }
 
-class Personalization extends StatefulWidget {
-  const Personalization({Key? key}) : super(key: key);
+class SettingsPersonalization extends StatefulWidget {
+  const SettingsPersonalization({Key? key}) : super(key: key);
 
   @override
-  _PersonalizationState createState() => _PersonalizationState();
+  _SettingsPersonalizationState createState() =>
+      _SettingsPersonalizationState();
 }
 
-class _PersonalizationState extends State<Personalization> {
+class _SettingsPersonalizationState extends State<SettingsPersonalization> {
   final ScrollController _controller = ScrollController();
 
   @override
@@ -243,85 +128,87 @@ class _PersonalizationState extends State<Personalization> {
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
 
-    return Wrap(
-      runSpacing: appTheme.itemSpacing,
-      children: [
-        itemBuilder(
-          context: context,
-          title: 'Dark mode',
-          icon: const Icon(fui.FluentIcons.weather_moon_24_regular, size: 21),
-          footer: SizedBox(
-            width: 170,
-            // height: 28,
-            child: Combobox<ThemeMode>(
-              comboboxColor: Colors.magenta,
-              value: appTheme.mode,
-              items: const [
-                ComboboxItem<ThemeMode>(
-                    child: Text('System default'), value: ThemeMode.system),
-                ComboboxItem<ThemeMode>(
-                    child: Text('Light'), value: ThemeMode.light),
-                ComboboxItem<ThemeMode>(
-                    child: Text('Dark'), value: ThemeMode.dark),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  appTheme.mode = value!;
-                });
-              },
-            ),
-          ),
-        ),
-        itemBuilder(
-          context: context,
-          title: 'Theme',
-          icon: const Icon(fui.FluentIcons.color_24_regular, size: 21),
-          content: SizedBox(
-            // width: 800,
-            height: 205,
-            child: Scrollbar(
-              controller: _controller,
-              child: ListView.builder(
-                controller: _controller,
-                padding: const EdgeInsets.only(bottom: 10.0),
-                scrollDirection: Axis.horizontal,
-                itemCount: appTheme.themes.length,
-                itemBuilder: (context, index) {
-                  String key = appTheme.themes.keys.elementAt(index);
-
-                  if (appTheme.accentColorPrimary == appTheme.themes[key]![0]) {
-                    return Row(children: [
-                      _themeCard(
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(key, style: appTheme.caption),
-                              const SizedBox(
-                                width: 4.0,
-                              ),
-                              const Icon(FluentIcons.circle_fill,
-                                  size: 6,
-                                  color: Color.fromARGB(255, 24, 211, 24))
-                            ],
-                          ),
-                          appTheme,
-                          appTheme.themes[key]!),
-                      gapWidth()
-                    ]);
-                  }
-
-                  return Row(children: [
-                    _themeCard(Text(key, style: appTheme.caption), appTheme,
-                        appTheme.themes[key]!),
-                    gapWidth()
-                  ]);
+    return ListView(children: [
+      Wrap(
+        runSpacing: appTheme.itemSpacing,
+        children: [
+          itemBuilder(
+            context: context,
+            title: 'Dark mode',
+            icon: fui.FluentIcons.dark_theme_24_regular,
+            footer: SizedBox(
+              width: 170,
+              // height: 28,
+              child: Combobox<ThemeMode>(
+                comboboxColor: Colors.magenta,
+                value: appTheme.mode,
+                items: const [
+                  ComboboxItem<ThemeMode>(
+                      child: Text('System default'), value: ThemeMode.system),
+                  ComboboxItem<ThemeMode>(
+                      child: Text('Light'), value: ThemeMode.light),
+                  ComboboxItem<ThemeMode>(
+                      child: Text('Dark'), value: ThemeMode.dark),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    appTheme.mode = value!;
+                  });
                 },
               ),
             ),
           ),
-        ),
-      ],
-    );
+          itemBuilder(
+            context: context,
+            title: 'Theme',
+            icon: fui.FluentIcons.color_24_regular,
+            content: SizedBox(
+              height: 205,
+              child: Scrollbar(
+                controller: _controller,
+                child: ListView.builder(
+                  controller: _controller,
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: appTheme.themes.length,
+                  itemBuilder: (context, index) {
+                    String key = appTheme.themes.keys.elementAt(index);
+
+                    if (appTheme.accentColorPrimary ==
+                        appTheme.themes[key]![0]) {
+                      return Row(children: [
+                        _themeCard(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(key, style: appTheme.caption),
+                                const SizedBox(
+                                  width: 4.0,
+                                ),
+                                const Icon(FluentIcons.circle_fill,
+                                    size: 6,
+                                    color: Color.fromARGB(255, 24, 211, 24))
+                              ],
+                            ),
+                            appTheme,
+                            appTheme.themes[key]!),
+                        gapWidth()
+                      ]);
+                    }
+
+                    return Row(children: [
+                      _themeCard(Text(key, style: appTheme.caption), appTheme,
+                          appTheme.themes[key]!),
+                      gapWidth()
+                    ]);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ]);
   }
 
   Widget _themeCard(Widget title, AppTheme appTheme, List<AccentColor> accent) {

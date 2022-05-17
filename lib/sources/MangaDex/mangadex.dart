@@ -153,8 +153,9 @@ class MangaDex implements MangaSource {
 
     for (int i = 0; i < chapter.pages; ++i) {
       final data = PageData(pagesData);
-      pages.add(
-          '${data.baseUrl}/data-saver/${data.hash}/${data.images['data-saver']![i]}');
+      final url =
+          '${data.baseUrl}/data-saver/${data.hash}/${data.images['data-saver']![i]}';
+      pages.add(url);
     }
 
     return pages;

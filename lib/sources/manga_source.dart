@@ -3,6 +3,7 @@ import 'package:http/http.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
+import 'package:xview/global_image_cache_manager.dart';
 
 import 'package:xview/tabs.dart';
 import 'package:xview/theme.dart';
@@ -81,21 +82,21 @@ class MangaItem extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(borderRadius: appTheme.brOuter),
                     child: CachedNetworkImage(
+                      cacheManager: GlobalImageCacheManager(),
+                      cacheKey: manga.id,
+                      imageUrl: manga.cover,
                       errorWidget: (context, url, error) => const SizedBox(
                           width: 180,
                           height: 270,
-                          child: Mica(
+                          child: Center(
                             child: Icon(fui.FluentIcons.image_off_24_regular,
                                 size: 16),
                           )),
-                      imageUrl: manga.cover,
                       width: 180,
                       height: 270,
-                      memCacheWidth: 180,
-                      memCacheHeight: 270,
-                      maxWidthDiskCache: 180,
-                      maxHeightDiskCache: 270,
                       fit: BoxFit.cover,
+                      fadeInDuration: Duration.zero,
+                      fadeOutDuration: Duration.zero,
                     )),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
