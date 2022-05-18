@@ -1,10 +1,11 @@
 <div>
 	<p align="center">
-		<img src="./assets/app_icon/xview_logo.png" width="80"/>
-	</p>
+		<img src="./assets/app_icon/xview_logo.png" width="100"/>
 	<h1 align="center">
 	xview
 	</h1>
+	</p>
+	
 	<p align="center">
 		<a title="Made with Fluent Design" href="https://github.com/bdlukaa/fluent_ui">
 			<img
