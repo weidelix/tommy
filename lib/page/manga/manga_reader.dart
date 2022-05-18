@@ -10,35 +10,36 @@ import 'package:xview/global_image_cache_manager.dart';
 
 import 'package:xview/page/source.dart';
 import 'package:xview/theme.dart';
-import 'package:xview/sources/manga_source.dart';
+import 'package:xview/utils.dart';
 import 'manga.dart';
 
-// TODO: Add compression to images
 class ReaderPage extends StatelessWidget {
   const ReaderPage({Key? key}) : super(key: key);
+
+  // final int chapterIndex;
 
   @override
   Widget build(BuildContext context) {
     return Stack(children: const [
-      Reader(),
-      CommandBar(),
+      _Reader(),
+      _CommandBar(),
     ]);
   }
 }
 
-class Reader extends StatefulWidget {
-  const Reader({Key? key}) : super(key: key);
+class _Reader extends StatefulWidget {
+  const _Reader({Key? key}) : super(key: key);
 
   @override
-  State<Reader> createState() => _ReaderState();
+  State<_Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends State<Reader> {
+class _ReaderState extends State<_Reader> {
   final List<CachedNetworkImage> images = [];
 
   @override
   void dispose() async {
-    _checkMemory();
+    checkMemory();
     super.dispose();
   }
 
@@ -47,7 +48,6 @@ class _ReaderState extends State<Reader> {
     final source = context.read<SourceState>();
     final mangaState = context.read<MangaState>();
     final manga = mangaState.manga;
-    // final manga = context.read<Manga>();
 
     final chapter = manga.chapters[mangaState.chapterSelected];
     final pages = source.sources[manga.source]!.readChapter(chapter);
@@ -101,14 +101,14 @@ class _ReaderState extends State<Reader> {
   }
 }
 
-class CommandBar extends StatefulWidget {
-  const CommandBar({Key? key}) : super(key: key);
+class _CommandBar extends StatefulWidget {
+  const _CommandBar({Key? key}) : super(key: key);
 
   @override
-  State<CommandBar> createState() => _CommandBarState();
+  State<_CommandBar> createState() => _CommandBarState();
 }
 
-class _CommandBarState extends State<CommandBar> {
+class _CommandBarState extends State<_CommandBar> {
   bool showCommandBar = true;
 
   @override
@@ -207,7 +207,7 @@ class _CommandBarState extends State<CommandBar> {
   }
 }
 
-/// [Reader] layouts
+/// [_Reader] layouts
 class ContinousVertical extends StatefulWidget {
   const ContinousVertical({required this.images, Key? key}) : super(key: key);
 
@@ -308,7 +308,7 @@ class _ContinousVerticalState extends State<ContinousVertical> {
                           child: const Center(child: ProgressRing())),
                       itemCount: widget.images.length,
                       itemBuilder: (context, index) {
-                        _checkMemory();
+                        checkMemory();
                         return Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: widget.images[index]);
@@ -321,10 +321,4 @@ class _ContinousVerticalState extends State<ContinousVertical> {
       }),
     );
   }
-}
-
-void _checkMemory() {
-  var imageCache = PaintingBinding.instance!.imageCache!;
-  imageCache.clear();
-  imageCache.clearLiveImages();
 }

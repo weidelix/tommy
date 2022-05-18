@@ -2,9 +2,9 @@
 
 A manga reader for Windows.
 
-## Getting Started
-
-TBD
+## What's working?
+	- View and read latest chapters from [Mangadex](https://mangadex.org/). No manga browsing yet.
+	- Light and dark mode + few accent colors.
 
 ## Credits
 

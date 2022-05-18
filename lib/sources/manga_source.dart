@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/global_image_cache_manager.dart';
+import 'package:xview/main.dart';
+import 'package:xview/page/manga/manga.dart';
 import 'package:xview/theme.dart';
 
 class Manga {
@@ -73,7 +75,9 @@ class MangaItem extends StatelessWidget {
         width: 180,
         height: 270,
         child: GestureDetector(
-            onTap: () {},
+            onTap: () {
+              NavigationManager().push(routeManga, manga);
+            },
             child: Column(
               children: [
                 Container(
@@ -83,13 +87,15 @@ class MangaItem extends StatelessWidget {
                       cacheManager: GlobalImageCacheManager(),
                       cacheKey: manga.id,
                       imageUrl: manga.cover,
-                      errorWidget: (context, url, error) => const SizedBox(
-                          width: 180,
-                          height: 270,
-                          child: Center(
-                            child: Icon(fui.FluentIcons.image_off_24_regular,
-                                size: 16),
-                          )),
+                      errorWidget: (context, url, error) => const Mica(
+                        child: SizedBox(
+                            width: 180,
+                            height: 270,
+                            child: Center(
+                              child: Icon(fui.FluentIcons.image_off_24_regular,
+                                  size: 20),
+                            )),
+                      ),
                       width: 180,
                       height: 270,
                       fit: BoxFit.cover,

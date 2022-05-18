@@ -2,13 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:xview/global_image_cache_manager.dart';
+import 'package:xview/main.dart';
+import 'package:xview/page/manga/manga.dart';
 import 'package:xview/page/source.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/theme.dart';
 import 'package:xview/sources/manga_source.dart';
-import 'package:inview_notifier_list/inview_notifier_list.dart';
-import 'manga.dart';
+import 'package:xview/main.dart';
 
 class MangaHomePage extends StatefulWidget {
   const MangaHomePage({Key? key}) : super(key: key);
@@ -30,8 +31,7 @@ class _MangaHomePageState extends State<MangaHomePage> {
     final manga = mangaState.manga;
     final appTheme = context.read<AppTheme>();
 
-    final controller =
-        ScrollController(initialScrollOffset: mangaState.homeScrollOffset);
+    final controller = ScrollController(initialScrollOffset: 0);
 
     return FutureBuilder<List<Chapter>>(
         future: manga.chapters.isEmpty
@@ -111,6 +111,7 @@ class _MangaInfoState extends State<MangaInfo> {
 
   @override
   Widget build(BuildContext context) {
+    final mangaState = context.read<MangaState>();
     final appTheme = context.read<AppTheme>();
     final bgColor = FluentTheme.of(context).micaBackgroundColor;
 
@@ -328,9 +329,15 @@ class _MangaInfoState extends State<MangaInfo> {
                             SizedBox(
                               width: 8.0,
                             ),
-                            Text('Resume'),
+                            Text('Start'),
                           ]),
-                      onPressed: () {}),
+                      onPressed: () {
+                        mangaState.controller.animateToPage(1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut);
+                        mangaState.chapterSelected = widget.manga.chapters
+                            .indexOf(widget.manga.chapters.last);
+                      }),
                   gapWidth(8.0),
                   IconButton(
                       icon: const Icon(
@@ -381,7 +388,6 @@ class ChapterItem extends StatelessWidget {
             mangaState.controller.animateToPage(1,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut);
-            // mangaState.page = 1;
             mangaState.chapterSelected = index;
           },
           child: Row(

@@ -21,15 +21,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
+    super.initState();
     itemsList = [
       navigationItemBuilder(
           context: context,
           title: 'General',
-          subtitle: 'Max tab count & more',
           icon: fui.FluentIcons.app_generic_24_regular,
           cb: () {
-            // setState(() => settings.goTo(routeGeneral));
-            RootNavigation().push(routeSettingsGeneral);
+            NavigationManager().push(routeSettingsGeneral);
           }),
       // Personalization
       navigationItemBuilder(
@@ -38,11 +37,9 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
           cb: () {
-            // setState(() => settings.goTo(routePersonalization));
-            RootNavigation().push(routeSettingsPersonalization);
+            NavigationManager().push(routeSettingsPersonalization);
           }),
     ];
-    super.initState();
   }
 
   @override
@@ -73,8 +70,6 @@ class _SettingsGeneralState extends State<SettingsGeneral> {
 
   @override
   Widget build(BuildContext context) {
-    final appTheme = context.read<AppTheme>();
-
     return Wrap(runSpacing: 4.0, children: const [
       // Text('Tabs', style: appTheme.bodyStrongAccent),
     ]);

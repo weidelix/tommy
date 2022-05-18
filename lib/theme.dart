@@ -219,8 +219,8 @@ class AppTheme extends ChangeNotifier {
 
   Map<String, List<AccentColor>> themes = {
     'System': [
-      SystemTheme.accentInstance.accent.toAccentColor(),
-      SystemTheme.accentInstance.accent.toAccentColor()
+      SystemTheme.accentColor.accent.toAccentColor(),
+      SystemTheme.accentColor.accent.toAccentColor()
     ],
     'Fluent': [
       kDefaultSystemAccentColor.toAccentColor(),

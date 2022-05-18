@@ -124,7 +124,7 @@ class _SourceCardState extends State<SourceCard> {
                                       onPressed: () {
                                         source.activeSource =
                                             source.sources[widget.title]!;
-                                        RootNavigation()
+                                        NavigationManager()
                                             .push(routeBrowseSource);
                                       }),
                                 ),

@@ -5,15 +5,6 @@ class LibraryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          SizedBox(
-            width: 350,
-          ),
-        ],
-      ),
-    ]);
+    return const Text('');
   }
 }

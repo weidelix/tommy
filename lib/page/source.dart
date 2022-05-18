@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/MangaDex/mangadex.dart';
-import 'package:xview/theme.dart';
+import 'package:xview/utils.dart';
 
 class SourceState extends ChangeNotifier {
   final Map<String, MangaSource> sources = {'MangaDex': MangaDex()};
@@ -53,14 +53,13 @@ class SourcePage extends StatefulWidget {
 class _SourcePageState extends State<SourcePage> {
   @override
   void dispose() {
-    _checkMemory();
+    checkMemory();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final source = context.watch<SourceState>();
-    final appTheme = context.read<AppTheme>();
     final controller =
         ScrollController(initialScrollOffset: source.scrollOffset);
 
@@ -69,51 +68,55 @@ class _SourcePageState extends State<SourcePage> {
     }
 
     if (source.latest.isEmpty) {
-      return const Center(
-        child: ProgressRing(),
-      );
-    } else {
-      return NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          source.scrollOffset = notification.metrics.pixels;
-
-          if (notification.metrics.maxScrollExtent ==
-              notification.metrics.pixels) {
-            if (source.isFinishedLoading) {
-              source.fetchLatestData();
-            }
-          }
+      return WillPopScope(
+        onWillPop: () async {
+          source.reset();
           return true;
         },
-        child: LayoutBuilder(
-          builder: (context, constrainst) => Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: Scrollbar(
-              controller: controller,
-              child: GridView.builder(
-                  cacheExtent: 0,
-                  controller: controller,
-                  shrinkWrap: true,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: (constrainst.maxWidth / 210).floor(),
-                    childAspectRatio: 180 / 270,
-                  ),
-                  itemCount: source.latest.length,
-                  itemBuilder: (context, index) {
-                    return MangaItem(manga: source.latest[index]);
-                  }),
+        child: const Center(
+          child: ProgressRing(),
+        ),
+      );
+    } else {
+      return WillPopScope(
+        onWillPop: () async {
+          source.reset();
+          return true;
+        },
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            source.scrollOffset = notification.metrics.pixels;
+
+            if (notification.metrics.maxScrollExtent ==
+                notification.metrics.pixels) {
+              if (source.isFinishedLoading) {
+                source.fetchLatestData();
+              }
+            }
+            return true;
+          },
+          child: LayoutBuilder(
+            builder: (context, constrainst) => Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Scrollbar(
+                controller: controller,
+                child: GridView.builder(
+                    cacheExtent: 0,
+                    controller: controller,
+                    shrinkWrap: true,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: (constrainst.maxWidth / 210).floor(),
+                      childAspectRatio: 180 / 270,
+                    ),
+                    itemCount: source.latest.length,
+                    itemBuilder: (context, index) {
+                      return MangaItem(manga: source.latest[index]);
+                    }),
+              ),
             ),
           ),
         ),
       );
-    }
-  }
-
-  void _checkMemory() async {
-    var imageCache = PaintingBinding.instance!.imageCache;
-    if (imageCache!.currentSizeBytes >= 55 << 5) {
-      imageCache.clear();
-      imageCache.clearLiveImages();
     }
   }
 }
