@@ -13,7 +13,6 @@ import 'package:xview/page/manga/manga.dart';
 import 'package:xview/page/settings.dart';
 import 'package:xview/page/source.dart';
 import 'package:xview/sources/manga_source.dart';
-
 import 'package:xview/theme.dart';
 
 const routeRoot = 'Root';
@@ -40,6 +39,7 @@ const routeSettingsPersonalization = 'SettingsSub/Personalization';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemTheme.accentColor.load();
+
   runApp(const MyApp());
   doWhenWindowReady(() async {
     const initialSize = Size(1280, 720);
@@ -123,7 +123,6 @@ class _LayoutState extends State<Layout> {
     listen = NavigationHistoryObserver().historyChangeStream.listen((_) {
       _canGoBack.value =
           NavigationManager().mainNavigator.currentState!.canPop();
-      print(_canGoBack.value);
     });
     super.initState();
   }
@@ -137,7 +136,6 @@ class _LayoutState extends State<Layout> {
   @override
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
-
     return ChangeNotifierProvider(
         create: (_) => SourceState(),
         builder: (context, _) {
@@ -187,16 +185,20 @@ class _LayoutState extends State<Layout> {
                   // ignore: sized_box_for_whitespace
                   child: Container(
                     height: appWindow.titleBarHeight,
-                    child: MoveWindow(
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                          MinimizeWindowButton(colors: _buttonColors),
-                          MaximizeWindowButton(colors: _buttonColors),
-                          CloseWindowButton(colors: _closeButtonColors),
-                        ])),
+                    child: MoveWindow(),
                   ),
-                )
+                ),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  MinimizeWindowButton(colors: _buttonColors),
+                  WindowButton(
+                    colors: _buttonColors,
+                    iconBuilder: (buttonContext) => appWindow.isMaximized
+                        ? RestoreIcon(color: buttonContext.iconColor)
+                        : MaximizeIcon(color: buttonContext.iconColor),
+                    onPressed: () => appWindow.maximizeOrRestore(),
+                  ),
+                  CloseWindowButton(colors: _closeButtonColors),
+                ])
               ],
             ),
             Padding(

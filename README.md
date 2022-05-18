@@ -1,4 +1,7 @@
 <div>
+	<p align="center">
+		<img src="./assets/app_icon/xview_logo.png" width="80"/>
+	</p>
 	<h1 align="center">
 	xview
 	</h1>
@@ -14,7 +17,7 @@
 	</p>
 </div>
 
-## What's working?
+## What's working
 - View and read latest chapters from [Mangadex](https://mangadex.org/). No manga browsing yet.
 - Light and dark mode + few accent colors.
 
