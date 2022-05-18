@@ -31,7 +31,8 @@ class _MangaHomePageState extends State<MangaHomePage> {
     final manga = mangaState.manga;
     final appTheme = context.read<AppTheme>();
 
-    final controller = ScrollController(initialScrollOffset: 0);
+    final controller =
+        ScrollController(initialScrollOffset: mangaState.homeScrollOffset);
 
     return FutureBuilder<List<Chapter>>(
         future: manga.chapters.isEmpty

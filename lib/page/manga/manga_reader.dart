@@ -65,20 +65,24 @@ class _ReaderState extends State<_Reader> {
             } else if (snapshot.hasData) {
               int index = 0;
               final images = snapshot.data!
-                  .map((url) => CachedNetworkImage(
-                        cacheManager: GlobalImageCacheManager(),
-                        cacheKey: chapter.id + (index++).toString(),
-                        imageUrl: url,
-                        height: constraints.maxHeight * 0.8,
-                        progressIndicatorBuilder: _loadingBuilder,
-                        errorWidget: (context, url, error) => Center(
-                            child: FilledButton(
-                                child: const Text('Refresh'),
-                                onPressed: () {})),
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.medium,
-                        fadeInDuration: Duration.zero,
-                        fadeOutDuration: Duration.zero,
+                  .map((url) => StatefulBuilder(
+                        builder: (context, setState) => CachedNetworkImage(
+                          cacheManager: GlobalImageCacheManager(),
+                          cacheKey: chapter.id + (index++).toString(),
+                          imageUrl: url,
+                          height: constraints.maxHeight * 0.8,
+                          progressIndicatorBuilder: _loadingBuilder,
+                          errorWidget: (context, url, error) => Center(
+                              child: FilledButton(
+                                  child: const Text('Refresh'),
+                                  onPressed: () {
+                                    setState(() {});
+                                  })),
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                        ),
                       ))
                   .toList();
               return ContinousVertical(images: images);
@@ -211,16 +215,14 @@ class _CommandBarState extends State<_CommandBar> {
 class ContinousVertical extends StatefulWidget {
   const ContinousVertical({required this.images, Key? key}) : super(key: key);
 
-  final List<CachedNetworkImage> images;
+  final List<Widget> images;
 
   @override
   State<ContinousVertical> createState() => _ContinousVerticalState();
 }
 
 class _ContinousVerticalState extends State<ContinousVertical> {
-  final FocusNode _focusNode = FocusNode(onKey: (focusNode, event) {
-    return KeyEventResult.skipRemainingHandlers;
-  });
+  final FocusNode _focusNode = FocusNode();
   final _canScale = ValueNotifier<bool>(false);
   bool _isAnimating = false;
 
