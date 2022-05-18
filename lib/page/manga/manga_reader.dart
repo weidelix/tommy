@@ -222,7 +222,8 @@ class ContinousVertical extends StatefulWidget {
 }
 
 class _ContinousVerticalState extends State<ContinousVertical> {
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode =
+      FocusNode(onKey: (_, __) => KeyEventResult.handled);
   final _canScale = ValueNotifier<bool>(false);
   bool _isAnimating = false;
 
