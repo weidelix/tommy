@@ -38,7 +38,6 @@ dependencies:
   bitsdojo_window: ^0.1.1+1
   http: ^0.13.4
   intl: ^0.17.0
-  palette_generator: ^0.3.3
   inview_notifier_list: ^3.0.0
   fluentui_system_icons: ^1.1.162
   cached_network_image: ^3.2.0
@@ -70,6 +69,7 @@ flutter:
     - assets/logo/MangaDex/512x512.png
     - assets/logo/MangaSee/64x64.png
     - assets/logo/Guya/64x64.png
+    - assets/app_icon/xview_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

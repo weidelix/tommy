@@ -1,7 +1,9 @@
 abstract class MDPaths {
   static const manga = '/manga';
   static const chapter = '/chapter';
-  static server({id}) => '/at-home/server/$id';
+  static const author = '/author';
+  static const server = '/at-home/server';
+  static const cover = '/covers';
 }
 
 abstract class MDQueries {
@@ -20,13 +22,15 @@ abstract class MDQueries {
 
   static Map<String, dynamic> order(String option, String order) =>
       {'order[$option]': order};
+}
+
+abstract class MDConstantQuery {
+  static const limit = 35;
+  static const latestChapterlimit = 100;
   static const notIncludeFutureUpdates = {'includeFutureUpdates': '0'};
 }
 
-abstract class MDConstants {
-  static const host = 'api.mangadex.org';
-  static const limit = 35;
-  static const latestChapterlimit = 100;
-  static String coverUri({required String id, required String fileName}) =>
-      'https://uploads.mangadex.org/covers/$id/$fileName.256.jpg';
+abstract class MDBase {
+  static const uploads = 'uploads.mangadex.org';
+  static const api = 'api.mangadex.org';
 }

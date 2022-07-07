@@ -6,35 +6,17 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:navigation_history_observer/navigation_history_observer.dart';
 import 'dart:async';
 
-import 'package:xview/page/library.dart';
-import 'package:xview/page/browse.dart';
-import 'package:xview/page/history.dart';
-import 'package:xview/page/manga/manga.dart';
-import 'package:xview/page/settings.dart';
-import 'package:xview/page/source.dart';
+import 'package:xview/sources/source_provider.dart';
+import 'package:xview/routes/navigation_manager.dart';
+import 'package:xview/constants/route_names.dart';
+import 'package:xview/routes/library.dart';
+import 'package:xview/routes/browse.dart';
+import 'package:xview/routes/history.dart';
+import 'package:xview/routes/manga/manga.dart';
+import 'package:xview/routes/settings.dart';
+import 'package:xview/routes/source.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/theme.dart';
-
-const routeRoot = 'Root';
-const routeManga = 'Manga';
-
-// Root routes
-const routeSubPageSuffix = 'Sub';
-const routeLibrary = 'Library';
-const routeHistory = 'History';
-const routeBrowse = 'Browse';
-const routeSettings = 'Settings';
-
-// Browse routes
-const routeBrowseSource = 'BrowseSub/Source';
-
-// Manga routes
-const routeMangaHome = 'MangaSub/Home';
-const routeMangaRead = 'MangaSub/Read';
-
-// Settings routes
-const routeSettingsGeneral = 'SettingsSub/General';
-const routeSettingsPersonalization = 'SettingsSub/Personalization';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -137,72 +119,79 @@ class _LayoutState extends State<Layout> {
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
     return ChangeNotifierProvider(
-        create: (_) => SourceState(),
+        create: (_) => SourceProvider(),
         builder: (context, _) {
           return Mica(
               child: Stack(children: [
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0, left: 4.0),
-                  child: ValueListenableBuilder(
-                    valueListenable: _canGoBack,
-                    builder: (context, bool value, child) => IconButton(
-                      icon: const Icon(fui.FluentIcons.arrow_left_24_regular,
-                          size: 16),
-                      style: ButtonStyle(
-                          backgroundColor: ButtonState.resolveWith((states) {
-                        final brightness = FluentTheme.of(context).brightness;
-                        late Color color;
-                        if (brightness == Brightness.light) {
-                          if (states.isPressing) {
-                            color = const Color(0xFFf2f2f2);
-                          } else if (states.isHovering) {
-                            color = const Color(0xFFF6F6F6);
-                          } else {
-                            color = Colors.white.withOpacity(0.0);
-                          }
-                          return color;
-                        } else {
-                          if (states.isPressing) {
-                            color = const Color(0xFF272727);
-                          } else if (states.isHovering) {
-                            color = const Color(0xFF323232);
-                          } else {
-                            color = Colors.black.withOpacity(0.0);
-                          }
-                          return color;
-                        }
-                      })),
-                      onPressed:
-                          value ? () => NavigationManager().back() : null,
+            SizedBox(
+              height: appWindow.titleBarHeight + 12,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6.0, left: 6.0),
+                    child: ValueListenableBuilder(
+                      valueListenable: _canGoBack,
+                      builder: (context, bool value, child) => IconButton(
+                        icon: const Icon(fui.FluentIcons.arrow_left_24_regular,
+                            size: 14),
+                        style: ButtonStyle(
+                            padding: ButtonState.all(const EdgeInsets.symmetric(
+                                horizontal: 12.0, vertical: 10.0)),
+                            backgroundColor: ButtonState.resolveWith((states) {
+                              final brightness =
+                                  FluentTheme.of(context).brightness;
+                              late Color color;
+                              if (brightness == Brightness.light) {
+                                if (states.isPressing) {
+                                  color = const Color(0xFFf2f2f2);
+                                } else if (states.isHovering) {
+                                  color = const Color(0xFFF6F6F6);
+                                } else {
+                                  color = Colors.white.withOpacity(0.0);
+                                }
+                                return color;
+                              } else {
+                                if (states.isPressing) {
+                                  color = const Color(0xFF272727);
+                                } else if (states.isHovering) {
+                                  color = const Color(0xFF323232);
+                                } else {
+                                  color = Colors.black.withOpacity(0.0);
+                                }
+                                return color;
+                              }
+                            })),
+                        onPressed:
+                            value ? () => NavigationManager().back() : null,
+                      ),
                     ),
                   ),
-                ),
-                gapWidth(16.0),
-                Text('xView', style: appTheme.caption),
-                Expanded(
-                  // ignore: sized_box_for_whitespace
-                  child: Container(
-                    height: appWindow.titleBarHeight,
+                  gapWidth(16.0),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text('NotMalware64.exe',
+                        textAlign: TextAlign.center, style: appTheme.caption),
+                  ),
+                  Expanded(
                     child: MoveWindow(),
                   ),
-                ),
-                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  MinimizeWindowButton(colors: _buttonColors),
-                  WindowButton(
-                    colors: _buttonColors,
-                    iconBuilder: (buttonContext) => appWindow.isMaximized
-                        ? RestoreIcon(color: buttonContext.iconColor)
-                        : MaximizeIcon(color: buttonContext.iconColor),
-                    onPressed: () => appWindow.maximizeOrRestore(),
-                  ),
-                  CloseWindowButton(colors: _closeButtonColors),
-                ])
-              ],
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    MinimizeWindowButton(colors: _buttonColors),
+                    WindowButton(
+                      colors: _buttonColors,
+                      iconBuilder: (buttonContext) => appWindow.isMaximized
+                          ? RestoreIcon(color: buttonContext.iconColor)
+                          : MaximizeIcon(color: buttonContext.iconColor),
+                      onPressed: () => appWindow.maximizeOrRestore(),
+                    ),
+                    CloseWindowButton(colors: _closeButtonColors),
+                  ])
+                ],
+              ),
             ),
             Padding(
-              padding: EdgeInsets.only(top: appWindow.titleBarHeight + 10),
+              padding: EdgeInsets.only(top: appWindow.titleBarHeight + 12),
               child: Navigator(
                 key: NavigationManager().rootToMangaNavigator,
                 onGenerateRoute: _onGenerateRoute,
@@ -295,7 +284,7 @@ class _RootPageState extends State<RootPage> {
         return;
       }
 
-      _title.value = context.read<SourceState>().activeSource.title;
+      _title.value = context.read<SourceProvider>().activeSource.title;
     });
     super.initState();
   }
@@ -311,11 +300,12 @@ class _RootPageState extends State<RootPage> {
     return NavigationView(
       pane: NavigationPane(
         header: const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Dice',
-              textAlign: TextAlign.center,
-            )),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Dice',
+            textAlign: TextAlign.center,
+          ),
+        ),
         displayMode: PaneDisplayMode.compact,
         selected: _selected,
         onChanged: (i) {
@@ -414,10 +404,13 @@ class _RootPageState extends State<RootPage> {
         break;
       // Settings
       case routeSettingsGeneral:
-        page = const SettingsGeneral();
+        page = const SettingsAbout();
         break;
       case routeSettingsPersonalization:
         page = const SettingsPersonalization();
+        break;
+      case routeSettingsAbout:
+        page = const SettingsAbout();
         break;
       // Browse
       case routeBrowseSource:
@@ -429,7 +422,6 @@ class _RootPageState extends State<RootPage> {
       return createRootPageAnimation(page, settings);
     }
 
-    // return FluentPageRoute(builder: (context) => page);
     return createSubPageAnimation(page, settings);
   }
 
@@ -524,63 +516,5 @@ class _RootPageState extends State<RootPage> {
                   .animate(secondaryAnimation),
               child: child);
         });
-  }
-}
-
-class NavigationManager {
-  static final _instance = NavigationManager._();
-
-  factory NavigationManager() {
-    return _instance;
-  }
-
-  NavigationManager._() {
-    NavigationHistoryObserver().historyChangeStream.listen((change) {
-      final HistoryChange data = change;
-
-      if (data.action == NavigationStackAction.pop) {
-        _instance._previousRoute = _instance._currentRoute;
-        _instance._currentRoute = data.oldRoute!.settings.name!;
-        _instance._didPop = true;
-      } else if (data.action == NavigationStackAction.push) {
-        _instance._previousRoute = _instance._currentRoute;
-        _instance._currentRoute = data.newRoute!.settings.name!;
-        _instance._didPop = false;
-      }
-    });
-  }
-
-  String _previousRoute = routeLibrary;
-  String get previousRoute => _previousRoute;
-  String _currentRoute = routeLibrary;
-  String get currentRoute => _currentRoute;
-  bool _didPop = false;
-  bool get didPop => _didPop;
-
-  // For moving between root page and manga page
-  final rootToMangaNavigator = GlobalKey<NavigatorState>();
-  // For moving between pages inside root page
-  final mainNavigator = GlobalKey<NavigatorState>();
-
-  /// Returns true if the page after pop can pop
-  Future<bool> back() async {
-    if (_instance.rootToMangaNavigator.currentState!.canPop()) {
-      await _instance.rootToMangaNavigator.currentState!.maybePop();
-      return true;
-    }
-
-    await _instance.mainNavigator.currentState!.maybePop();
-    return _instance.mainNavigator.currentState!.canPop();
-  }
-
-  void push(String route, [Object? arguments]) {
-    if (route == routeManga) {
-      _instance.rootToMangaNavigator.currentState!
-          .pushNamed(route, arguments: arguments);
-      return;
-    }
-
-    _instance.mainNavigator.currentState!
-        .pushNamed(route, arguments: arguments);
   }
 }

@@ -6,17 +6,16 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:xview/global_image_cache_manager.dart';
 
-import 'package:xview/page/source.dart';
+import 'package:xview/cache_managers/global_image_cache_manager.dart';
+import 'package:xview/routes/manga/manga_state_provider.dart';
+import 'package:xview/sources/manga_source.dart';
+import 'package:xview/sources/source_provider.dart';
 import 'package:xview/theme.dart';
-import 'package:xview/utils.dart';
-import 'manga.dart';
+import 'package:xview/utils/utils.dart';
 
 class ReaderPage extends StatelessWidget {
   const ReaderPage({Key? key}) : super(key: key);
-
-  // final int chapterIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +44,8 @@ class _ReaderState extends State<_Reader> {
 
   @override
   Widget build(BuildContext context) {
-    final source = context.read<SourceState>();
-    final mangaState = context.read<MangaState>();
+    final source = context.read<SourceProvider>();
+    final mangaState = context.read<MangaStateProvider>();
     final manga = mangaState.manga;
 
     final chapter = manga.chapters[mangaState.chapterSelected];
@@ -65,42 +64,14 @@ class _ReaderState extends State<_Reader> {
             } else if (snapshot.hasData) {
               int index = 0;
               final images = snapshot.data!
-                  .map((url) => StatefulBuilder(
-                        builder: (context, setState) => CachedNetworkImage(
-                          cacheManager: GlobalImageCacheManager(),
-                          cacheKey: chapter.id + (index++).toString(),
-                          imageUrl: url,
-                          height: constraints.maxHeight * 0.8,
-                          progressIndicatorBuilder: _loadingBuilder,
-                          errorWidget: (context, url, error) => Center(
-                              child: FilledButton(
-                                  child: const Text('Refresh'),
-                                  onPressed: () {
-                                    setState(() {});
-                                  })),
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.medium,
-                          fadeInDuration: Duration.zero,
-                          fadeOutDuration: Duration.zero,
-                        ),
-                      ))
+                  .map((url) => Page(
+                      url: url, cacheKey: chapter.id + (index++).toString()))
                   .toList();
               return ContinousVertical(images: images);
             }
 
             return const Center(child: ProgressRing());
           }),
-    );
-  }
-
-  Widget _loadingBuilder(
-      BuildContext context, String url, DownloadProgress loadingProgress) {
-    return Center(
-      child: ProgressRing(
-        value: loadingProgress.progress != null
-            ? lerpDouble(loadingProgress.progress! * 100.0, 100.0, 0.1)
-            : null,
-      ),
     );
   }
 }
@@ -124,7 +95,7 @@ class _CommandBarState extends State<_CommandBar> {
 
   @override
   Widget build(BuildContext context) {
-    final mangaState = context.read<MangaState>();
+    final mangaState = context.read<MangaStateProvider>();
     final appTheme = context.read<AppTheme>();
 
     const divider = Padding(
@@ -145,7 +116,7 @@ class _CommandBarState extends State<_CommandBar> {
             setState(() => showCommandBar = false);
           },
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.only(bottom: 16.0, top: 36.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -225,6 +196,7 @@ class _ContinousVerticalState extends State<ContinousVertical> {
   final FocusNode _focusNode =
       FocusNode(onKey: (_, __) => KeyEventResult.handled);
   final _canScale = ValueNotifier<bool>(false);
+  final _tranController = TransformationController();
   bool _isAnimating = false;
 
   @override
@@ -236,15 +208,17 @@ class _ContinousVerticalState extends State<ContinousVertical> {
   @override
   void dispose() {
     _focusNode.dispose();
+    _tranController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final mangaState = context.read<MangaState>();
+    final mangaState = context.read<MangaStateProvider>();
     final controller =
         ScrollController(initialScrollOffset: mangaState.readerScrollOffset);
     FocusScope.of(context).requestFocus();
+
     return Padding(
       padding: const EdgeInsets.only(right: 4.0),
       child: LayoutBuilder(builder: (context, constraints) {
@@ -297,9 +271,26 @@ class _ContinousVerticalState extends State<ContinousVertical> {
               valueListenable: _canScale,
               builder: (BuildContext context, bool value, Widget? child) =>
                   InteractiveViewer(
-                constrained: true,
-                minScale: 0.01,
+                onInteractionUpdate: (ScaleUpdateDetails details) {
+                  _focusNode.requestFocus();
+                  final scale = _tranController.value.getMaxScaleOnAxis();
+                  final sens = (scale - 5.5) / (1.0 - 5.5);
+
+                  if (scale > 1.0) {
+                    final newMatrix = Matrix4.copy(_tranController.value);
+                    newMatrix.translate(details.focalPointDelta.dx * sens);
+                    _tranController.value = newMatrix;
+
+                    controller.jumpTo((controller.position.pixels -
+                        details.focalPointDelta.dy * sens));
+                  } else {
+                    controller.jumpTo(controller.position.pixels -
+                        details.focalPointDelta.dy);
+                  }
+                },
+                transformationController: _tranController,
                 maxScale: 4.0,
+                panEnabled: false,
                 scaleEnabled: value,
                 child: Scrollbar(
                   controller: controller,
@@ -322,6 +313,54 @@ class _ContinousVerticalState extends State<ContinousVertical> {
           ),
         );
       }),
+    );
+  }
+}
+
+class Page extends StatefulWidget {
+  const Page({required this.url, required this.cacheKey, Key? key})
+      : super(key: key);
+
+  // final Chapter chapter;
+  final String url;
+  final String cacheKey;
+
+  @override
+  State<Page> createState() => _PageState();
+}
+
+class _PageState extends State<Page> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  int count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return CachedNetworkImage(
+      cacheManager: GlobalImageCacheManager(),
+      cacheKey: widget.cacheKey,
+      imageUrl: widget.url,
+      progressIndicatorBuilder: _loadingBuilder,
+      errorWidget: (context, url, error) => Center(
+          child: FilledButton(child: const Text('Refresh'), onPressed: () {})),
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      fadeInDuration: Duration.zero,
+      fadeOutDuration: Duration.zero,
+    );
+  }
+
+  Widget _loadingBuilder(
+      BuildContext context, String url, DownloadProgress loadingProgress) {
+    return Center(
+      child: ProgressRing(
+        value: loadingProgress.progress != null
+            ? loadingProgress.progress! * 100.0
+            : null,
+      ),
     );
   }
 }

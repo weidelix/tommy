@@ -1,7 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
-import 'package:xview/main.dart';
+import 'package:xview/routes/navigation_manager.dart';
+import 'package:xview/constants/route_names.dart';
 import 'package:xview/theme.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -25,19 +26,19 @@ class _SettingsPageState extends State<SettingsPage> {
     itemsList = [
       navigationItemBuilder(
           context: context,
-          title: 'General',
-          icon: fui.FluentIcons.app_generic_24_regular,
-          cb: () {
-            NavigationManager().push(routeSettingsGeneral);
-          }),
-      // Personalization
-      navigationItemBuilder(
-          context: context,
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
           cb: () {
             NavigationManager().push(routeSettingsPersonalization);
+          }),
+      navigationItemBuilder(
+          context: context,
+          title: 'About',
+          subtitle: 'Updates, what\'s new & privacy policy',
+          icon: fui.FluentIcons.info_24_regular,
+          cb: () {
+            NavigationManager().push(routeSettingsAbout);
           }),
     ];
   }
@@ -232,5 +233,120 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
         ),
       ),
     );
+  }
+}
+
+class SettingsAbout extends StatefulWidget {
+  const SettingsAbout({Key? key}) : super(key: key);
+
+  @override
+  _SettingsAboutState createState() => _SettingsAboutState();
+}
+
+class _SettingsAboutState extends State<SettingsAbout> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+
+    return Wrap(runSpacing: 4.0, children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Row(
+            children: [
+              Image.asset(
+                'assets/app_icon/xview_logo.png',
+                height: 100,
+                fit: BoxFit.fitHeight,
+              ),
+              gapWidth(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tommy',
+                    style: appTheme.subtitle,
+                  ),
+                  Opacity(
+                    opacity: 0.7,
+                    child: Text(
+                      'Version: 0.1.4',
+                      style: appTheme.body,
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(borderRadius: appTheme.brInner),
+            child: OutlinedButton(
+              child: Row(children: [
+                Icon(fui.FluentIcons.arrow_sync_24_filled,
+                    size: 24, color: appTheme.accentColorSecondary),
+                gapWidth(),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Check for updates'),
+                  Opacity(
+                    opacity: 0.7,
+                    child: Text(
+                      'Last checked: 0 hours ago',
+                      style: appTheme.caption,
+                    ),
+                  )
+                ])
+              ]),
+              onPressed: () {},
+              style: ButtonStyle(
+                  border: ButtonState.all(BorderSide.none),
+                  padding: ButtonState.all(const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 10.0)),
+                  backgroundColor: ButtonState.resolveWith((states) {
+                    final brightness = FluentTheme.of(context).brightness;
+                    late Color color;
+                    if (brightness == Brightness.light) {
+                      if (states.isPressing) {
+                        color = const Color(0xFFf2f2f2);
+                      } else if (states.isHovering) {
+                        color = const Color(0xFFF6F6F6);
+                      } else {
+                        color = Colors.white.withOpacity(0.0);
+                      }
+                      return color;
+                    } else {
+                      if (states.isPressing) {
+                        color = const Color(0xFF272727);
+                      } else if (states.isHovering) {
+                        color = const Color(0xFF323232);
+                      } else {
+                        color = Colors.black.withOpacity(0.0);
+                      }
+                      return color;
+                    }
+                  })),
+            ),
+          )
+        ]),
+      ),
+      itemBuilder(
+          context: context,
+          icon: fui.FluentIcons.star_24_regular,
+          title: 'What\'s new'),
+      itemBuilder(
+          context: context,
+          icon: fui.FluentIcons.branch_24_regular,
+          title: 'Open source licenses'),
+      itemBuilder(
+          context: context,
+          icon: fui.FluentIcons.lock_closed_24_regular,
+          title: 'Privacy policy'),
+    ]);
   }
 }

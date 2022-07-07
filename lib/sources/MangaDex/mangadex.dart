@@ -6,46 +6,10 @@ import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/MangaDex/md_constants.dart';
 import 'package:xview/sources/MangaDex/md_helper.dart';
 
-/// Process [MangaDex] manga data to get required [Manga] data
-class MDManga {
-  const MDManga({this.data});
-
-  final dynamic data;
-
-  String get id => data['id'];
-
-  String get title => data['attributes']['title'].values.first;
-
-  String get description {
-    // Return "Unknown" if theres no description
-    if (data['attributes']['description'].isEmpty) {
-      return 'Unknown';
-    }
-
-    // Return english version of the description
-    // If it is null return "Unknown"
-    // TODO Return description based on the preferred language of the user
-    return (data['attributes']['description']['en'] as String?)
-            ?.split('---')[0]
-            .trim() ??
-        'Unknown';
-  }
-
-  String get cover {
-    final coverId = (data['relationships'].firstWhere(
-        (element) => element['type'] == 'cover_art'))['attributes']['fileName'];
-
-    return 'https://uploads.mangadex.org/covers/${data['id']}/$coverId.256.jpg';
-  }
-
-  String get status => toBeginningOfSentenceCase(data['attributes']['status'])!;
-}
-
 class MangaDex implements MangaSource {
   @override
   String title = 'MangaDex';
 
-  @override
   Future<List<Manga>> parseLatestUpdates(Future<Response> res) async {
     try {
       final response = await res;
@@ -62,20 +26,12 @@ class MangaDex implements MangaSource {
       query.addAll(MDQueries.includes(['cover_art']));
       query.addAll(MDQueries.ids(latestIds));
 
-      final uri = Uri.https(MDConstants.host, MDPaths.manga, query);
+      final uri = Uri.https(MDBase.api, MDPaths.manga, query);
       var mangasData = jsonDecode((await get(uri)).body);
 
       List<Manga> mangas = [];
       for (var manga in mangasData['data']) {
-        final data = MDManga(data: manga);
-
-        mangas.add(Manga(
-            source: title,
-            id: data.id,
-            title: data.title,
-            cover: data.cover,
-            description: data.description,
-            status: data.status));
+        mangas.add(await getMinMangaData(manga));
       }
 
       return mangas;
@@ -85,19 +41,21 @@ class MangaDex implements MangaSource {
   }
 
   @override
-  Future<Response> latestUpdatesRequest([int page = 1]) async {
+  Future<List<Manga>> latestUpdatesRequest([int page = 1]) async {
     final Map<String, dynamic> query = {};
 
-    query.addAll(MDQueries.offset(MDConstants.latestChapterlimit * (page - 1)));
-    query.addAll(MDQueries.limit(MDConstants.latestChapterlimit));
+    query.addAll(
+        MDQueries.offset(MDConstantQuery.latestChapterlimit * (page - 1)));
+    query.addAll(MDQueries.limit(MDConstantQuery.latestChapterlimit));
     query.addAll(MDQueries.includes(['user', 'scanlation_group', 'manga']));
     query.addAll(MDQueries.contentRating(['safe', 'suggestive']));
     query.addAll(MDQueries.originalLanguage(['en', 'ja', 'ko']));
     query.addAll(MDQueries.translatedLanguage(['en']));
     query.addAll(MDQueries.order('readableAt', 'desc'));
-    query.addAll(MDQueries.notIncludeFutureUpdates);
+    query.addAll(MDConstantQuery.notIncludeFutureUpdates);
 
-    return get(Uri.https(MDConstants.host, MDPaths.chapter, query));
+    return parseLatestUpdates(
+        get(Uri.https(MDBase.api, MDPaths.chapter, query)));
   }
 
   @override
@@ -110,12 +68,12 @@ class MangaDex implements MangaSource {
     while (!stop) {
       query.addAll(MDQueries.offset(100 * offset++));
       query.addAll(MDQueries.manga(id));
-      query.addAll(MDQueries.limit(MDConstants.latestChapterlimit));
+      query.addAll(MDQueries.limit(MDConstantQuery.latestChapterlimit));
       query.addAll(MDQueries.translatedLanguage(['en']));
-      query.addAll(MDQueries.notIncludeFutureUpdates);
+      query.addAll(MDConstantQuery.notIncludeFutureUpdates);
       query.addAll(MDQueries.order('chapter', 'asc'));
 
-      final uri = Uri.https(MDConstants.host, MDPaths.chapter, query);
+      final uri = Uri.https(MDBase.api, MDPaths.chapter, query);
       final chaptersData = jsonDecode((await get(uri)).body);
 
       // TODO: Optimize checking of the last chapter
@@ -148,7 +106,7 @@ class MangaDex implements MangaSource {
   @override
   Future<List<String>> readChapter(Chapter chapter) async {
     final List<String> pages = [];
-    final uri = Uri.https(MDConstants.host, MDPaths.server(id: chapter.id));
+    final uri = MDHelper.toServerUri(chapter.id);
     final pagesData = jsonDecode((await get(uri)).body);
 
     for (int i = 0; i < chapter.pages; ++i) {
@@ -159,5 +117,50 @@ class MangaDex implements MangaSource {
     }
 
     return pages;
+  }
+
+  @override
+  Future<void> getFullMangaData(Manga manga) async {
+    final uri = Uri.https(MDBase.api, MDPaths.manga + '/${manga.id}');
+    final data = jsonDecode((await get(uri)).body)['data'];
+
+    String? description;
+
+    if (data['attributes']['description'].isNotEmpty) {
+      description = data['attributes']['description'].values.first;
+
+      if (description!.indexOf('---') > 0) {
+        description = description.substring(1, description.indexOf('---'));
+      }
+    }
+
+    final ids = (data['relationships'] as List<dynamic>)
+        .where((element) => element['type'] == 'author')
+        .map((e) => e['id'])
+        .toList(growable: false);
+
+    final authorsUri =
+        Uri.https(MDBase.api, MDPaths.author, MDQueries.ids(ids));
+    final authorsData = jsonDecode((await get(authorsUri)).body)['data'];
+    String authors = (authorsData as List<dynamic>)
+        .map((e) => e['attributes']['name'])
+        .join(", ");
+
+    manga.description = description;
+    manga.authors = authors;
+  }
+
+  Future<Manga> getMinMangaData(dynamic data) async {
+    String id = data['id'];
+    String title = data['attributes']['title'].values.first;
+
+    String status = toBeginningOfSentenceCase(data['attributes']['status'])!;
+
+    final fileName = (data['relationships'].firstWhere(
+        (element) => element['type'] == 'cover_art'))['attributes']['fileName'];
+    String cover = MDHelper.toCoverUrl(id, fileName);
+
+    return Manga(
+        id: id, title: title, status: status, cover: cover, source: 'MangaDex');
   }
 }

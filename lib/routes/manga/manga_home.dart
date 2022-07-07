@@ -1,15 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:xview/global_image_cache_manager.dart';
-import 'package:xview/main.dart';
-import 'package:xview/page/manga/manga.dart';
-import 'package:xview/page/source.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
+import 'package:xview/cache_managers/global_image_cache_manager.dart';
+import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/sources/manga_source.dart';
-import 'package:xview/main.dart';
+import 'package:xview/routes/manga/manga_state_provider.dart';
+import 'package:xview/sources/source_provider.dart';
 
 class MangaHomePage extends StatefulWidget {
   const MangaHomePage({Key? key}) : super(key: key);
@@ -26,20 +25,32 @@ class _MangaHomePageState extends State<MangaHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final source = context.read<SourceState>();
-    final mangaState = context.read<MangaState>();
+    final source = context.read<SourceProvider>();
+    final mangaState = context.read<MangaStateProvider>();
     final manga = mangaState.manga;
     final appTheme = context.read<AppTheme>();
 
     final controller =
         ScrollController(initialScrollOffset: mangaState.homeScrollOffset);
 
-    return FutureBuilder<List<Chapter>>(
-        future: manga.chapters.isEmpty
-            ? source.sources[manga.source]!.fetchChapters(manga.id)
+    return FutureBuilder<List<dynamic>>(
+        future: manga.chapters.isEmpty && !manga.hasCompleteData
+            ? Future.wait([
+                source.sources[manga.source]!.fetchChapters(manga.id),
+                source.sources[manga.source]!.getFullMangaData(manga)
+              ])
             : null,
         builder: (_, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.hasError) {
+            NavigationManager().back();
+            showSnackbar(
+                context,
+                Snackbar(
+                  extended: true,
+                  content: Text(snapshot.error.toString()),
+                ),
+                duration: const Duration(seconds: 5));
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
             return SizedBox(
                 width: double.infinity,
                 child: Column(
@@ -49,20 +60,16 @@ class _MangaHomePageState extends State<MangaHomePage> {
                       gapHeight(),
                       const ProgressBar()
                     ]));
-          } else if (snapshot.hasError) {
-            showSnackbar(
-              context,
-              Snackbar(
-                content: Text(snapshot.error.toString()),
-              ),
-            );
-          } else if (snapshot.connectionState != ConnectionState.none) {
-            if (manga.chapters.length != snapshot.data!.length) {
-              manga.chapters.addAll(snapshot.data!);
+          } else if (snapshot.hasData) {
+            if (manga.chapters.length !=
+                (snapshot.data![0] as List<Chapter>).length) {
+              manga.chapters.addAll((snapshot.data![0] as List<Chapter>));
 
               manga.chapters.sort((a, b) =>
                   double.parse(b.chapter).compareTo(double.parse(a.chapter)));
             }
+
+            manga.hasCompleteData = true;
           }
 
           return NotificationListener<ScrollNotification>(
@@ -112,7 +119,7 @@ class _MangaInfoState extends State<MangaInfo> {
 
   @override
   Widget build(BuildContext context) {
-    final mangaState = context.read<MangaState>();
+    final mangaState = context.read<MangaStateProvider>();
     final appTheme = context.read<AppTheme>();
     final bgColor = FluentTheme.of(context).micaBackgroundColor;
 
@@ -140,7 +147,7 @@ class _MangaInfoState extends State<MangaInfo> {
               //NOTE: Still has shadow even if elevation is 0 - need to change shadow color to bgColor to hide shadow
               shadowColor: bgColor,
               elevation: 0,
-              luminosityAlpha: 0.45,
+              luminosityAlpha: 0,
               blurAmount: 3,
               child: Container(
                 width: double.infinity,
@@ -223,6 +230,7 @@ class _MangaInfoState extends State<MangaInfo> {
                                     ));
                           },
                           child: CachedNetworkImage(
+                            cacheManager: GlobalImageCacheManager(),
                             imageUrl: widget.manga.cover,
                             width: 210,
                             height: 315,
@@ -248,10 +256,10 @@ class _MangaInfoState extends State<MangaInfo> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Author',
-                                    style: appTheme.body,
-                                  ),
+                                  Text(widget.manga.authors ?? 'Author(s)',
+                                      style: appTheme.body
+                                      // .apply(fontWeightDelta: 0),
+                                      ),
                                   Text(
                                     '${widget.manga.source} • ${widget.manga.status}',
                                     style: appTheme.body,
@@ -301,7 +309,8 @@ class _MangaInfoState extends State<MangaInfo> {
                     ),
                   ]),
                   gapWidth(),
-                  Description(description: widget.manga.description)
+                  Description(
+                      description: widget.manga.description ?? 'Unknown')
                 ]),
               ],
             ),
@@ -373,7 +382,7 @@ class ChapterItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
-    final mangaState = context.read<MangaState>();
+    final mangaState = context.read<MangaStateProvider>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
