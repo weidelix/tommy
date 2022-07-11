@@ -1,6 +1,6 @@
 <div>
 	<h1 align="center">
-		xview
+		Tommy
 	</h1>
 	<p align="center">
 		<img src="./assets/app_icon/xview_logo.png" width="150"/>
