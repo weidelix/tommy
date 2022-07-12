@@ -81,6 +81,7 @@ class MangaDex implements MangaSource {
         for (var chapter in chaptersData['data']) {
           if (!chapters.any((element) => element.id == chapter['id'])) {
             chapters.add(Chapter(
+                source: 'MangaDex',
                 id: chapter['id'],
                 chapter: chapter['attributes']['chapter']?.trim() ?? '-1',
                 title: chapter['attributes']['title'] ?? '',

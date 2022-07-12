@@ -15,6 +15,7 @@ class Manga {
   String? authors;
   String? description;
   String? status;
+  String? lastRead;
   bool hasCompleteData = false;
 
   List<Chapter> chapters = [];
@@ -28,7 +29,8 @@ class Chapter {
       required this.chapter,
       required this.dateUploaded,
       required this.scanlationGroup,
-      required this.pages});
+      required this.pages,
+      required this.source});
 
   final String id;
   final String title;
@@ -37,6 +39,7 @@ class Chapter {
   final String dateUploaded;
   final String scanlationGroup;
   final int pages;
+  final String source;
   bool isRead = false;
 }
 

@@ -8,26 +8,30 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
-import 'package:xview/routes/manga/manga_state_provider.dart';
+import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/source_provider.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/utils/utils.dart';
 
-class ReaderPage extends StatelessWidget {
-  const ReaderPage({Key? key}) : super(key: key);
+class MangaReaderPage extends StatelessWidget {
+  const MangaReaderPage({required this.chapter, Key? key}) : super(key: key);
+
+  final Chapter chapter;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: const [
-      _Reader(),
-      _CommandBar(),
+    return Stack(children: [
+      _Reader(chapter: chapter),
+      const _CommandBar(),
     ]);
   }
 }
 
 class _Reader extends StatefulWidget {
-  const _Reader({Key? key}) : super(key: key);
+  const _Reader({required this.chapter, Key? key}) : super(key: key);
+
+  final Chapter chapter;
 
   @override
   State<_Reader> createState() => _ReaderState();
@@ -45,11 +49,9 @@ class _ReaderState extends State<_Reader> {
   @override
   Widget build(BuildContext context) {
     final source = context.read<SourceProvider>();
-    final mangaState = context.read<MangaStateProvider>();
-    final manga = mangaState.manga;
+    final chapter = widget.chapter;
+    final pages = source.sources[chapter.source]!.readChapter(chapter);
 
-    final chapter = manga.chapters[mangaState.chapterSelected];
-    final pages = source.sources[manga.source]!.readChapter(chapter);
     return LayoutBuilder(
       builder: (context, constraints) => FutureBuilder<List<String>>(
           future: pages,
@@ -95,7 +97,6 @@ class _CommandBarState extends State<_CommandBar> {
 
   @override
   Widget build(BuildContext context) {
-    final mangaState = context.read<MangaStateProvider>();
     final appTheme = context.read<AppTheme>();
 
     const divider = Padding(
@@ -138,10 +139,7 @@ class _CommandBarState extends State<_CommandBar> {
                               size: iconSize,
                             ),
                             onPressed: () {
-                              mangaState.readerScrollOffset = 0;
-                              mangaState.controller.animateToPage(0,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut);
+                              NavigationManager().back();
                             }),
                         divider,
                         IconButton(
@@ -214,9 +212,7 @@ class _ContinousVerticalState extends State<ContinousVertical> {
 
   @override
   Widget build(BuildContext context) {
-    final mangaState = context.read<MangaStateProvider>();
-    final controller =
-        ScrollController(initialScrollOffset: mangaState.readerScrollOffset);
+    final controller = ScrollController();
     FocusScope.of(context).requestFocus();
 
     return Padding(
@@ -227,10 +223,7 @@ class _ContinousVerticalState extends State<ContinousVertical> {
           focusNode: _focusNode,
           onKey: (RawKeyEvent event) {
             if (event.logicalKey == LogicalKeyboardKey.escape) {
-              mangaState.readerScrollOffset = 0;
-              mangaState.controller.animateToPage(0,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut);
+              NavigationManager().back();
             } else {
               _canScale.value = event.isControlPressed;
             }
@@ -262,52 +255,46 @@ class _ContinousVerticalState extends State<ContinousVertical> {
               }
             }
           },
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              mangaState.readerScrollOffset = notification.metrics.pixels;
-              return true;
-            },
-            child: ValueListenableBuilder(
-              valueListenable: _canScale,
-              builder: (BuildContext context, bool value, Widget? child) =>
-                  InteractiveViewer(
-                onInteractionUpdate: (ScaleUpdateDetails details) {
-                  _focusNode.requestFocus();
-                  final scale = _tranController.value.getMaxScaleOnAxis();
-                  final sens = (scale - 5.5) / (1.0 - 5.5);
+          child: ValueListenableBuilder(
+            valueListenable: _canScale,
+            builder: (BuildContext context, bool value, Widget? child) =>
+                InteractiveViewer(
+              onInteractionUpdate: (ScaleUpdateDetails details) {
+                _focusNode.requestFocus();
+                final scale = _tranController.value.getMaxScaleOnAxis();
+                final sens = (scale - 5.5) / (1.0 - 5.5);
 
-                  if (scale > 1.0) {
-                    final newMatrix = Matrix4.copy(_tranController.value);
-                    newMatrix.translate(details.focalPointDelta.dx * sens);
-                    _tranController.value = newMatrix;
+                if (scale > 1.0) {
+                  final newMatrix = Matrix4.copy(_tranController.value);
+                  newMatrix.translate(details.focalPointDelta.dx * sens);
+                  _tranController.value = newMatrix;
 
-                    controller.jumpTo((controller.position.pixels -
-                        details.focalPointDelta.dy * sens));
-                  } else {
-                    controller.jumpTo(controller.position.pixels -
-                        details.focalPointDelta.dy);
-                  }
-                },
-                transformationController: _tranController,
-                maxScale: 4.0,
-                panEnabled: false,
-                scaleEnabled: value,
-                child: Scrollbar(
-                  controller: controller,
-                  child: ListView.builder(
-                      controller: controller,
-                      prototypeItem: SizedBox(
-                          width: constraints.maxWidth,
-                          height: constraints.maxHeight,
-                          child: const Center(child: ProgressRing())),
-                      itemCount: widget.images.length,
-                      itemBuilder: (context, index) {
-                        checkMemory();
-                        return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: widget.images[index]);
-                      }),
-                ),
+                  controller.jumpTo((controller.position.pixels -
+                      details.focalPointDelta.dy * sens));
+                } else {
+                  controller.jumpTo(
+                      controller.position.pixels - details.focalPointDelta.dy);
+                }
+              },
+              transformationController: _tranController,
+              maxScale: 4.0,
+              panEnabled: false,
+              scaleEnabled: value,
+              child: Scrollbar(
+                controller: controller,
+                child: ListView.builder(
+                    controller: controller,
+                    prototypeItem: SizedBox(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        child: const Center(child: ProgressRing())),
+                    itemCount: widget.images.length,
+                    itemBuilder: (context, index) {
+                      checkMemory();
+                      return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: widget.images[index]);
+                    }),
               ),
             ),
           ),
