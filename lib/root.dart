@@ -66,13 +66,6 @@ class _RootPageState extends State<RootPage> {
   Widget build(BuildContext context) {
     return NavigationView(
       pane: NavigationPane(
-        header: const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Dice',
-            textAlign: TextAlign.center,
-          ),
-        ),
         displayMode: PaneDisplayMode.compact,
         selected: _selected,
         onChanged: (i) {

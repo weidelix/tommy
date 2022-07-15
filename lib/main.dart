@@ -9,7 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemTheme.accentColor.load();
 
-  runApp(const MyApp());
+  runApp(const Tommy());
   doWhenWindowReady(() async {
     const initialSize = Size(1280, 720);
     appWindow.title = 'Tommy';
@@ -20,8 +20,8 @@ void main() async {
   });
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class Tommy extends StatelessWidget {
+  const Tommy({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
