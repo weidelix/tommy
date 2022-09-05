@@ -76,7 +76,6 @@ class _MangaPageState extends State<MangaPage> {
           return Padding(
             padding: const EdgeInsets.only(right: 4.0),
             child: Scrollbar(
-              isAlwaysShown: false,
               controller: controller,
               child: ListView.builder(
                   key: const PageStorageKey('Manga'),
@@ -228,6 +227,7 @@ class _MangaInfoState extends State<MangaInfo> {
                           },
                           child: CachedNetworkImage(
                             cacheManager: GlobalImageCacheManager(),
+                            cacheKey: widget.manga.id,
                             imageUrl: widget.manga.cover,
                             width: 210,
                             height: 315,
@@ -329,16 +329,9 @@ class _MangaInfoState extends State<MangaInfo> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // const Icon(
-                            //   fui.FluentIcons.play_24_filled,
-                            //   size: 14,
-                            // ),
-                            // const SizedBox(
-                            //   width: 8.0,
-                            // ),
                             Text(lastRead == null
                                 ? 'Start'
-                                : "Continue reading 'Chapter ${lastRead.chapter}'"),
+                                : "Continue reading '${lastRead.title}'"),
                           ]),
                       onPressed: () {
                         if (widget.manga.lastRead == null) {

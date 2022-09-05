@@ -152,13 +152,12 @@ class MangaDex implements MangaSource {
   }
 
   Future<Manga> getMinMangaData(dynamic data) async {
-    String id = data['id'];
-    String title = data['attributes']['title'].values.first;
-
-    String status = toBeginningOfSentenceCase(data['attributes']['status'])!;
-
     final fileName = (data['relationships'].firstWhere(
         (element) => element['type'] == 'cover_art'))['attributes']['fileName'];
+
+    String id = data['id'];
+    String title = data['attributes']['title'].values.first;
+    String status = toBeginningOfSentenceCase(data['attributes']['status'])!;
     String cover = MDHelper.toCoverUrl(id, fileName);
 
     return Manga(

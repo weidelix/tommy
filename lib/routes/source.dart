@@ -45,7 +45,7 @@ class _SourcePageState extends State<SourcePage> {
       },
       child: NotificationListener<SizeChangedLayoutNotification>(
         onNotification: (notification) {
-          WidgetsBinding.instance!.addPostFrameCallback(_checkIfCanScroll);
+          WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
           return true;
         },
         child: SizeChangedLayoutNotifier(
@@ -88,7 +88,7 @@ class _SourcePageState extends State<SourcePage> {
                   );
                 }
 
-                WidgetsBinding.instance!
+                WidgetsBinding.instance
                     .addPostFrameCallback(_checkIfCanScroll);
                 return GridView.builder(
                     padding: const EdgeInsets.only(right: 4.0),
@@ -114,7 +114,7 @@ class _SourcePageState extends State<SourcePage> {
     if (controller.position.maxScrollExtent <= 0) {
       final source = context.read<SourceProvider>();
       source.fetchLatestData().whenComplete(() => setState(() {
-            WidgetsBinding.instance!.addPostFrameCallback(_checkIfCanScroll);
+            WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
           }));
     }
   }
