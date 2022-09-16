@@ -269,20 +269,10 @@ class _MangaInfoState extends State<MangaInfo> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
-                                  width: 180,
+                                  width: 150,
                                   child: FilledButton(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                              fui.FluentIcons.heart_24_regular,
-                                              size: 16),
-                                          gapWidth(8.0),
-                                          const Text(
-                                            'Add to library',
-                                          ),
-                                        ],
+                                      child: const Text(
+                                        'Add to library',
                                       ),
                                       onPressed: () {}),
                                 ),
@@ -335,7 +325,7 @@ class _MangaInfoState extends State<MangaInfo> {
             ),
           ),
         ]),
-        gapHeight(),
+        gapHeight(32.0),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 200.0),
           child: Mica(
@@ -354,7 +344,7 @@ class _MangaInfoState extends State<MangaInfo> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                            '${widget.manga.chapters.length} chapter${widget.manga.chapters.length == 1 ? '' : 's'}',
+                            '${widget.manga.chapters.length} Chapter${widget.manga.chapters.length == 1 ? '' : 's'}',
                             style: appTheme.bodyStrong
                                 .apply(fontSizeFactor: 1.15)),
                         IconButton(
@@ -472,12 +462,10 @@ class _DescriptionState extends State<Description> {
   Widget build(BuildContext context) {
     final AppTheme appTheme = context.read<AppTheme>();
 
-    final minDesc = SizedBox(
-      height: 55.0,
-      child: Text(
-        widget.description,
-        overflow: TextOverflow.fade,
-      ),
+    final minDesc = Text(
+      widget.description,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
 
     final maxDesc = Text(
@@ -524,6 +512,7 @@ class _DescriptionState extends State<Description> {
                       firstChild: minDesc,
                       secondChild: maxDesc)),
             ),
+            gapHeight(),
             !tap
                 ? const Center(child: Icon(FluentIcons.chevron_down, size: 10))
                 : const Center(child: Icon(FluentIcons.chevron_up, size: 10))
