@@ -58,15 +58,30 @@ class _SourcePageState extends State<SourcePage> {
                 if (source.isFinishedLoading) {
                   showSnackbar(
                       context,
-                      Mica(
-                          elevation: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Loading',
-                              style: appTheme.bodyStrong,
-                            ),
-                          )));
+                      SizedBox(
+                        width: 120,
+                        child: Mica(
+                            borderRadius: appTheme.brOuter,
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Loading',
+                                    style: appTheme.bodyStrong,
+                                  ),
+                                  gapWidth(8.0),
+                                  const SizedBox(
+                                      width: 15,
+                                      height: 15,
+                                      child: ProgressRing(strokeWidth: 2.5))
+                                ],
+                              ),
+                            )),
+                      ));
                   source.fetchLatestData().whenComplete(() => setState(() {}));
                 }
               }
@@ -76,7 +91,31 @@ class _SourcePageState extends State<SourcePage> {
               future: source.latest.isEmpty ? source.fetchLatestData() : null,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
+                  return Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        snapshot.error.toString(),
+                        style: appTheme.bodyStrong,
+                      ),
+                      gapHeight(32),
+                      IconButton(
+                          icon: const Icon(
+                            fui.FluentIcons.arrow_clockwise_24_regular,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              source.reset();
+                            });
+                          }),
+                      Text(
+                        'Refresh',
+                        style: appTheme.caption,
+                      )
+                    ],
+                  ));
                 } else if (snapshot.connectionState ==
                     ConnectionState.waiting) {
                   return WillPopScope(
@@ -88,17 +127,16 @@ class _SourcePageState extends State<SourcePage> {
                   );
                 }
 
-                WidgetsBinding.instance
-                    .addPostFrameCallback(_checkIfCanScroll);
+                WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
                 return GridView.builder(
                     padding: const EdgeInsets.only(right: 4.0),
                     controller: controller,
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                            childAspectRatio: 380.0 / 267.0,
+                            childAspectRatio: 176.0 / 300.0,
                             mainAxisSpacing: 24.0,
                             crossAxisSpacing: 16.0,
-                            maxCrossAxisExtent: 380),
+                            maxCrossAxisExtent: 176.0),
                     itemCount: source.latest.length,
                     itemBuilder: (context, count) =>
                         MangaItem(manga: source.latest[count]));
@@ -133,81 +171,76 @@ class MangaItem extends StatefulWidget {
 }
 
 class _MangaItemState extends State<MangaItem> {
-  static const aspectRatio = width / height;
-  static const width = 380.0;
-  static const height = 267.0;
+  static const height = 300.0;
+  static const width = 176.0;
+  static const imageAspectRatio = 250 / width;
   bool isHovering = false;
 
   @override
   Widget build(BuildContext context) {
     checkMemory();
-    final hover = Matrix4.identity()..translate(0.0, -1.09);
+    final hover = Matrix4.identity()..translate(0.0, -3.00);
+    final appTheme = context.read<AppTheme>();
+
     return GestureDetector(
       onTap: () => NavigationManager().push(routeManga, widget.manga),
       child: MouseRegion(
         onEnter: (onEnter) => setState(() => isHovering = true),
         onExit: (onExit) => setState(() => isHovering = false),
-        child: AnimatedContainer(
-          transform: isHovering ? hover : Matrix4.identity(),
-          duration: const Duration(milliseconds: 80),
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-              color: isHovering
-                  ? Colors.black.withOpacity(0.15)
-                  : Colors.black.withOpacity(0.1),
-              borderRadius: const BorderRadius.all(Radius.circular(8))),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(4))),
-                    child: CachedNetworkImage(
-                      width: (height / 2 - 24) * aspectRatio,
-                      height: height - 24,
-                      fit: BoxFit.cover,
-                      cacheManager: GlobalImageCacheManager(),
-                      cacheKey: widget.manga.id,
-                      imageUrl: widget.manga.cover,
-                      errorWidget: (context, url, error) => const Mica(
-                        child: SizedBox(
-                            width: 180,
-                            height: 270,
-                            child: Center(
-                              child: Icon(fui.FluentIcons.image_off_24_regular,
-                                  size: 20),
-                            )),
-                      ),
-                    )),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
+        child: Tooltip(
+          message: widget.manga.title,
+          useMousePosition: true,
+          child: AnimatedContainer(
+            transform: isHovering ? hover : Matrix4.identity(),
+            duration: const Duration(milliseconds: 80),
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+                color: isHovering
+                    ? Colors.black.withOpacity(0.15)
+                    : Colors.black.withOpacity(0.1),
+                borderRadius: const BorderRadius.all(Radius.circular(8))),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(4))),
+                      child: CachedNetworkImage(
+                        width: width - 24,
+                        height: (width - 24) * imageAspectRatio,
+                        fit: BoxFit.cover,
+                        cacheManager: GlobalImageCacheManager(),
+                        cacheKey: widget.manga.id,
+                        imageUrl: widget.manga.cover,
+                        errorWidget: (context, url, error) => const Mica(
+                          child: SizedBox(
+                              width: 180,
+                              height: 300,
+                              child: Center(
+                                child: Icon(
+                                    fui.FluentIcons.image_off_24_regular,
+                                    size: 20),
+                              )),
+                        ),
+                      )),
+                  // const SizedBox(width: 16),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(widget.manga.title,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.left,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              overflow: TextOverflow.ellipsis,
-                              fontSize: 16)),
-                      const SizedBox(height: 4),
-                      const Text('',
-                          overflow: TextOverflow.clip,
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              overflow: TextOverflow.ellipsis,
-                              fontSize: 12)),
+                          style: appTheme.bodyStrong),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

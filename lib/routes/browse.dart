@@ -30,7 +30,7 @@ class _BrowsePageState extends State<BrowsePage> {
           opacity: 0.8,
           child: Text(
             'Active',
-            style: appTheme.bodyStrongAccent,
+            style: appTheme.bodyStrong,
           ),
         ),
         gapHeight(),
@@ -69,7 +69,7 @@ class _SourceCardState extends State<SourceCard> {
 
     return Mica(
       elevation: 2,
-      borderRadius: appTheme.brInner,
+      borderRadius: appTheme.brOuter,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
@@ -104,7 +104,11 @@ class _SourceCardState extends State<SourceCard> {
                               NavigationManager().push(routeBrowseSource);
                             }),
                       ),
-                      const SizedBox(width: 8.0),
+                      gapWidth(8.0),
+                      IconButton(
+                          icon: const Icon(fui.FluentIcons.globe_24_regular,
+                              size: 20),
+                          onPressed: () {}),
                       IconButton(
                           icon: const Icon(fui.FluentIcons.settings_24_regular,
                               size: 20),

@@ -10,6 +10,7 @@ import 'package:xview/constants/route_names.dart';
 import 'package:xview/root.dart';
 import 'package:xview/routes/manga/manga.dart';
 import 'package:xview/routes/manga/manga_reader.dart';
+import 'package:xview/routes/manga/manga_state_provider.dart';
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/source_provider.dart';
@@ -161,7 +162,8 @@ class _LayoutState extends State<Layout> {
         break;
 
       case routeMangaRead:
-        page = MangaReaderPage(chapter: settings.arguments as Chapter);
+        page = MangaReaderPage(
+            readerState: settings.arguments as MangaReaderState);
         break;
     }
 

@@ -9,11 +9,17 @@ import 'package:xview/theme.dart';
 
 class ReaderCommandBar extends StatefulWidget {
   const ReaderCommandBar(
-      {required this.onZoomIn, required this.onZoomOut, Key? key})
+      {required this.onNextChapter,
+      required this.onPreviousChapter,
+      required this.onZoomIn,
+      required this.onZoomOut,
+      Key? key})
       : super(key: key);
 
   final void Function() onZoomIn;
   final void Function() onZoomOut;
+  final void Function() onNextChapter;
+  final void Function() onPreviousChapter;
 
   @override
   State<ReaderCommandBar> createState() => _ReaderCommandBarState();
@@ -37,7 +43,7 @@ class _ReaderCommandBarState extends State<ReaderCommandBar> {
         padding: EdgeInsets.symmetric(horizontal: 4.0),
         child: Divider(direction: Axis.vertical, size: 15));
 
-    const iconSize = 20.0;
+    const iconSize = 18.0;
 
     return Padding(
       padding: const EdgeInsets.only(right: 24.0),
@@ -81,23 +87,23 @@ class _ReaderCommandBarState extends State<ReaderCommandBar> {
                                 divider,
                                 Tooltip(
                                   useMousePosition: false,
-                                  message: 'Next chapter',
+                                  message: 'Previous chapter',
                                   child: IconButton(
                                       icon: const Icon(
                                         fui.FluentIcons.previous_24_regular,
                                         size: iconSize,
                                       ),
-                                      onPressed: () {}),
+                                      onPressed: widget.onPreviousChapter),
                                 ),
                                 Tooltip(
                                   useMousePosition: false,
-                                  message: 'Previous chapter',
+                                  message: 'Next chapter',
                                   child: IconButton(
                                       icon: const Icon(
                                         fui.FluentIcons.next_24_regular,
                                         size: iconSize,
                                       ),
-                                      onPressed: () {}),
+                                      onPressed: widget.onNextChapter),
                                 ),
                                 divider,
                                 Tooltip(

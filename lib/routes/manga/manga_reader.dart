@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
+import 'package:xview/routes/manga/manga_state_provider.dart';
 import 'package:xview/routes/manga/reader_layouts/vertical_reader.dart';
 import 'package:xview/routes/manga/widgets/reader_command_bar.dart';
 import 'package:xview/routes/navigation_manager.dart';
@@ -12,19 +13,22 @@ import 'package:xview/sources/source_provider.dart';
 import 'package:xview/utils/utils.dart';
 
 class MangaReaderPage extends StatelessWidget {
-  const MangaReaderPage({required this.chapter, Key? key}) : super(key: key);
+  const MangaReaderPage({required this.readerState, Key? key})
+      : super(key: key);
 
-  final Chapter chapter;
+  final MangaReaderState readerState;
 
   @override
   Widget build(BuildContext context) {
-    return _Reader(chapter: chapter);
+    return _Reader(manga: readerState.manga, chapter: readerState.chapter);
   }
 }
 
 class _Reader extends StatefulWidget {
-  const _Reader({required this.chapter, Key? key}) : super(key: key);
+  const _Reader({required this.manga, required this.chapter, Key? key})
+      : super(key: key);
 
+  final Manga manga;
   final Chapter chapter;
 
   @override
@@ -41,6 +45,13 @@ class _ReaderState extends State<_Reader> {
   bool _isAnimating = false;
   var _prevMatrix = Matrix4.identity();
   BoxConstraints _constraints = const BoxConstraints();
+  late Chapter _currentChapter;
+
+  @override
+  void initState() {
+    _currentChapter = widget.chapter;
+    super.initState();
+  }
 
   @override
   void dispose() async {
@@ -53,9 +64,8 @@ class _ReaderState extends State<_Reader> {
   Widget build(BuildContext context) {
     FocusScope.of(context).requestFocus();
     final source = context.read<SourceProvider>();
-    final chapter = widget.chapter;
-    final pages = source.sources[chapter.source]!.readChapter(chapter);
-
+    final pages =
+        source.sources[widget.manga.source]!.readChapter(_currentChapter);
     return RawKeyboardListener(
         autofocus: true,
         focusNode: _focusNode,
@@ -78,7 +88,8 @@ class _ReaderState extends State<_Reader> {
                       final images = snapshot.data!
                           .map((url) => Page(
                               url: url,
-                              cacheKey: chapter.id + (index++).toString()))
+                              cacheKey:
+                                  _currentChapter.id + (index++).toString()))
                           .toList();
                       return Padding(
                           padding: const EdgeInsets.only(right: 4.0),
@@ -98,8 +109,41 @@ class _ReaderState extends State<_Reader> {
                     }
                     return const Center(child: ProgressRing());
                   })),
-          ReaderCommandBar(onZoomIn: _onZoomIn, onZoomOut: _onZoomOut)
+          ReaderCommandBar(
+              onNextChapter: _onNextChapter,
+              onPreviousChapter: _onPreviousChapter,
+              onZoomIn: _onZoomIn,
+              onZoomOut: _onZoomOut)
         ]));
+  }
+
+  void _onNextChapter() {
+    int index = widget.manga.chapters.indexOf(_currentChapter);
+
+    if (index - 1 >= 0) {
+      setState(() {
+        _currentChapter = widget.manga.chapters[index - 1];
+        _currentChapter.isRead = true;
+      });
+      _controller.jumpTo(0);
+    } else {
+      showSnackbar(context, const Snackbar(content: Text('No next chapter')));
+    }
+  }
+
+  void _onPreviousChapter() {
+    int index = widget.manga.chapters.indexOf(_currentChapter);
+
+    if (index + 1 < widget.manga.chapters.length) {
+      setState(() {
+        _currentChapter = widget.manga.chapters[index + 1];
+        _currentChapter.isRead = true;
+      });
+      _controller.jumpTo(0);
+    } else {
+      showSnackbar(
+          context, const Snackbar(content: Text('No previous chapter')));
+    }
   }
 
   void _onZoomIn() {
@@ -130,7 +174,7 @@ class _ReaderState extends State<_Reader> {
       const duration = Duration(milliseconds: 300);
       const curve = Curves.easeInOutCubicEmphasized;
 
-      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
         final nearestUp = _constraints.maxHeight *
             ((_controller.position.pixels - _constraints.maxHeight.ceil()) /
                     _constraints.maxHeight)
@@ -139,7 +183,7 @@ class _ReaderState extends State<_Reader> {
         _controller
             .animateTo(nearestUp, duration: duration, curve: curve)
             .then((value) => _isAnimating = false);
-      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
         final nearestDown = _constraints.maxHeight *
             ((_controller.position.pixels + _constraints.maxHeight.ceil()) /
                     _constraints.maxHeight)
@@ -148,6 +192,10 @@ class _ReaderState extends State<_Reader> {
         _controller
             .animateTo(nearestDown, duration: duration, curve: curve)
             .then((value) => _isAnimating = false);
+      } else if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)) {
+        _onPreviousChapter();
+      } else if (event.isKeyPressed(LogicalKeyboardKey.arrowRight)) {
+        _onNextChapter();
       }
     }
   }

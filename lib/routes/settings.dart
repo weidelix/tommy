@@ -29,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
-          cb: () {
+          onPress: () {
             NavigationManager().push(routeSettingsPersonalization);
           }),
       navigationItemBuilder(
@@ -37,7 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'About',
           subtitle: 'Updates, what\'s new & privacy policy',
           icon: fui.FluentIcons.info_24_regular,
-          cb: () {
+          onPress: () {
             NavigationManager().push(routeSettingsAbout);
           }),
     ];
@@ -335,18 +335,21 @@ class _SettingsAboutState extends State<SettingsAbout> {
           )
         ]),
       ),
-      itemBuilder(
+      navigationItemBuilder(
           context: context,
           icon: fui.FluentIcons.star_24_regular,
-          title: 'What\'s new'),
-      itemBuilder(
+          title: 'What\'s new',
+          onPress: () {}),
+      navigationItemBuilder(
           context: context,
           icon: fui.FluentIcons.branch_24_regular,
-          title: 'Open source licenses'),
-      itemBuilder(
+          title: 'Open source licenses',
+          onPress: () {}),
+      navigationItemBuilder(
           context: context,
           icon: fui.FluentIcons.lock_closed_24_regular,
-          title: 'Privacy policy'),
+          title: 'Privacy policy',
+          onPress: () {}),
     ]);
   }
 }

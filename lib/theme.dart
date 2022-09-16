@@ -15,7 +15,7 @@ Widget navigationItemBuilder(
     required String title,
     String? subtitle,
     required IconData icon,
-    required void Function() cb}) {
+    required void Function() onPress}) {
   final appTheme = context.read<AppTheme>();
 
   return Container(
@@ -51,7 +51,7 @@ Widget navigationItemBuilder(
           return color;
         }),
       ),
-      onPressed: cb,
+      onPressed: onPress,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -139,7 +139,6 @@ Widget itemBuilder(
         ],
       ),
     ),
-    // ),
   );
 }
 

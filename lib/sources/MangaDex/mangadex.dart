@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
@@ -27,7 +28,14 @@ class MangaDex implements MangaSource {
       query.addAll(MDQueries.ids(latestIds));
 
       final uri = Uri.https(MDBase.api, MDPaths.manga, query);
-      var mangasData = jsonDecode((await get(uri)).body);
+      var data = await get(uri);
+      var mangasData = jsonDecode(data.body);
+
+      if (mangasData['result'] == 'error') {
+        var error = mangasData['errors'].first;
+
+        throw HttpException(error['detail']);
+      }
 
       List<Manga> mangas = [];
       for (var manga in mangasData['data']) {
@@ -36,7 +44,7 @@ class MangaDex implements MangaSource {
 
       return mangas;
     } catch (identifier) {
-      return [];
+      rethrow;
     }
   }
 
