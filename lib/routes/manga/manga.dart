@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
 import 'package:xview/constants/route_names.dart';
 import 'package:xview/routes/manga/manga_state_provider.dart';
+import 'package:xview/routes/manga/widgets/tags.dart';
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/sources/manga_source.dart';
@@ -124,44 +127,44 @@ class _MangaInfoState extends State<MangaInfo> {
         Stack(children: [
           SizedBox(
             width: double.infinity,
-            height: 400,
+            height: 500,
             child: CachedNetworkImage(
               cacheManager: GlobalImageCacheManager(),
               cacheKey: widget.manga.id,
               imageUrl: widget.manga.cover,
-              alignment: const Alignment(0.5, -0.7),
+              alignment: const Alignment(0.5, -0.6),
               fit: BoxFit.cover,
               fadeInDuration: Duration.zero,
               fadeOutDuration: Duration.zero,
+              filterQuality: FilterQuality.high,
             ),
           ),
-          Acrylic(
-              //NOTE: Still has shadow even if elevation is 0 - need to change shadow color to bgColor to hide shadow
-              shadowColor: bgColor,
-              elevation: 0,
-              luminosityAlpha: 0,
-              blurAmount: 1,
-              child: Container(
-                width: double.infinity,
-                height: 410,
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [
-                      0.0,
-                      0.9,
-                      1.0,
-                    ],
-                        colors: [
-                      bgColor.withAlpha(0),
-                      bgColor,
-                      bgColor
-                    ])),
-              )),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+            child: Container(
+              width: double.infinity,
+              height: 515,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [
+                    0.0,
+                    0.6,
+                    0.9,
+                    1.0,
+                  ],
+                      colors: [
+                    bgColor.withAlpha(0),
+                    bgColor.withAlpha(100),
+                    bgColor,
+                    bgColor
+                  ])),
+            ),
+          ),
           Padding(
             padding:
-                const EdgeInsets.only(left: 200.0, top: 200.0, right: 200.0),
+                const EdgeInsets.only(left: 200.0, top: 380.0, right: 200.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -248,13 +251,17 @@ class _MangaInfoState extends State<MangaInfo> {
                                     widget.manga.title,
                                     style: appTheme.titleLarge,
                                   )),
-                              gapHeight(16.0),
+                              gapHeight(8.0),
                               Row(children: [
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(widget.manga.authors ?? 'Author(s)',
-                                        style: appTheme.caption),
+                                    SizedBox(
+                                      width: 600,
+                                      child: Text(
+                                          widget.manga.authors ?? 'Author(s)',
+                                          style: appTheme.caption),
+                                    ),
                                     Text(
                                       '${widget.manga.source} • ${widget.manga.status}',
                                       style: appTheme.caption,
@@ -262,6 +269,25 @@ class _MangaInfoState extends State<MangaInfo> {
                                   ],
                                 ),
                               ]),
+                              gapHeight(32.0),
+                              Wrap(
+                                direction: Axis.horizontal,
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: widget.manga.tags
+                                    .map((e) => buildTag(context, e))
+                                    .toList(),
+                              ),
+                              gapHeight(32.0),
+                              Text(
+                                  widget.manga.description?.substring(
+                                          0,
+                                          widget.manga.description!
+                                                  .indexOf('.') +
+                                              1) ??
+                                      'Unknown',
+                                  style: appTheme.body),
+                              gapHeight(32.0),
                             ],
                           ),
                           Row(
@@ -269,7 +295,7 @@ class _MangaInfoState extends State<MangaInfo> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
-                                  width: 150,
+                                  width: 200,
                                   child: FilledButton(
                                       child: const Text(
                                         'Add to library',

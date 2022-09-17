@@ -16,6 +16,7 @@ class Manga {
   String? description;
   String? status;
   String? lastRead;
+  List<String> tags = [];
   bool hasCompleteData = false;
 
   List<Chapter> chapters = [];

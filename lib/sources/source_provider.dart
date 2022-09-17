@@ -19,14 +19,11 @@ class SourceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Manga>> fetchLatestData() async {
+  Future<void> fetchLatestData() async {
     isFinishedLoading = false;
-    await activeSource.latestUpdatesRequest(page++).then((value) {
-      _latest.addAll(value);
-      isFinishedLoading = true;
-    });
-
-    return _latest;
+    final result = await activeSource.latestUpdatesRequest(page++);
+    _latest.addAll(result);
+    isFinishedLoading = true;
   }
 
   void reset() {

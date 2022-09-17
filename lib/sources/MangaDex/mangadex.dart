@@ -143,6 +143,13 @@ class MangaDex implements MangaSource {
       }
     }
 
+    List<String> tags = [];
+    if (data['attributes']['tags'].isNotEmpty) {
+      tags = (data['attributes']['tags'] as List<dynamic>)
+          .map<String>((e) => e['attributes']['name']['en'])
+          .toList();
+    }
+
     final ids = (data['relationships'] as List<dynamic>)
         .where((element) => element['type'] == 'author')
         .map((e) => e['id'])
@@ -155,6 +162,7 @@ class MangaDex implements MangaSource {
         .map((e) => e['attributes']['name'])
         .join(", ");
 
+    manga.tags = tags;
     manga.description = description;
     manga.authors = authors;
   }
