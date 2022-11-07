@@ -66,66 +66,68 @@ class _ReaderCommandBarState extends State<ReaderCommandBar> {
                             offset: show ? Offset.zero : const Offset(0, 10),
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOutCubic,
-                            child: Card(
+                            child: Mica(
                               borderRadius: appTheme.brOuter,
-                              padding: const EdgeInsets.all(4.0),
-                              child:
-                                  Flex(direction: Axis.horizontal, children: [
-                                Tooltip(
-                                  useMousePosition: false,
-                                  message: 'Close reader',
-                                  child: IconButton(
-                                      icon: const Icon(
-                                        fui.FluentIcons.arrow_left_24_regular,
-                                        size: iconSize,
-                                      ),
-                                      onPressed: () {
-                                        NavigationManager().back();
-                                      }),
-                                ),
-                                divider,
-                                Tooltip(
-                                  useMousePosition: false,
-                                  message: 'Previous chapter',
-                                  child: IconButton(
-                                      icon: const Icon(
-                                        fui.FluentIcons.previous_24_regular,
-                                        size: iconSize,
-                                      ),
-                                      onPressed: widget.onPreviousChapter),
-                                ),
-                                Tooltip(
-                                  useMousePosition: false,
-                                  message: 'Next chapter',
-                                  child: IconButton(
-                                      icon: const Icon(
-                                        fui.FluentIcons.next_24_regular,
-                                        size: iconSize,
-                                      ),
-                                      onPressed: widget.onNextChapter),
-                                ),
-                                divider,
-                                Tooltip(
-                                  useMousePosition: false,
-                                  message: 'Zoom out',
-                                  child: IconButton(
-                                      icon: const Icon(
-                                        fui.FluentIcons.zoom_out_24_regular,
-                                        size: iconSize,
-                                      ),
-                                      onPressed: widget.onZoomOut),
-                                ),
-                                Tooltip(
-                                  useMousePosition: false,
-                                  message: 'Zoom in',
-                                  child: IconButton(
-                                      icon: const Icon(
-                                        fui.FluentIcons.zoom_in_24_regular,
-                                        size: iconSize,
-                                      ),
-                                      onPressed: widget.onZoomIn),
-                                ),
-                              ]),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child:
+                                    Flex(direction: Axis.horizontal, children: [
+                                  Tooltip(
+                                    useMousePosition: false,
+                                    message: 'Close reader',
+                                    child: IconButton(
+                                        icon: const Icon(
+                                          fui.FluentIcons.arrow_left_24_regular,
+                                          size: iconSize,
+                                        ),
+                                        onPressed: () {
+                                          NavigationManager().back();
+                                        }),
+                                  ),
+                                  divider,
+                                  Tooltip(
+                                    useMousePosition: false,
+                                    message: 'Previous chapter',
+                                    child: IconButton(
+                                        icon: const Icon(
+                                          fui.FluentIcons.previous_24_regular,
+                                          size: iconSize,
+                                        ),
+                                        onPressed: widget.onPreviousChapter),
+                                  ),
+                                  Tooltip(
+                                    useMousePosition: false,
+                                    message: 'Next chapter',
+                                    child: IconButton(
+                                        icon: const Icon(
+                                          fui.FluentIcons.next_24_regular,
+                                          size: iconSize,
+                                        ),
+                                        onPressed: widget.onNextChapter),
+                                  ),
+                                  divider,
+                                  Tooltip(
+                                    useMousePosition: false,
+                                    message: 'Zoom out',
+                                    child: IconButton(
+                                        icon: const Icon(
+                                          fui.FluentIcons.zoom_out_24_regular,
+                                          size: iconSize,
+                                        ),
+                                        onPressed: widget.onZoomOut),
+                                  ),
+                                  Tooltip(
+                                    useMousePosition: false,
+                                    message: 'Zoom in',
+                                    child: IconButton(
+                                        icon: const Icon(
+                                          fui.FluentIcons.zoom_in_24_regular,
+                                          size: iconSize,
+                                        ),
+                                        onPressed: widget.onZoomIn),
+                                  ),
+                                ]),
+                              ),
                             ),
                           ),
                         ))
