@@ -15,7 +15,7 @@ Widget navigationItemBuilder(
     required String title,
     String? subtitle,
     required IconData icon,
-    required void Function() onPress}) {
+    required void Function() onPressed}) {
   final appTheme = context.read<AppTheme>();
 
   return Container(
@@ -26,7 +26,7 @@ Widget navigationItemBuilder(
         padding: ButtonState.all(EdgeInsets.zero),
         backgroundColor: ButtonState.resolveWith((Set<ButtonStates> states) {
           final theme = FluentTheme.of(context);
-          final color = theme.micaBackgroundColor.toAccentColor();
+          final color = theme.cardColor.toAccentColor();
 
           if (states.isDisabled) {
             if (theme.brightness.isDark) {
@@ -51,7 +51,7 @@ Widget navigationItemBuilder(
           return color;
         }),
       ),
-      onPressed: onPress,
+      onPressed: onPressed,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -89,18 +89,18 @@ Widget itemBuilder(
     required String title,
     String? subtitle,
     IconData? icon,
-    // Image? image,
     Widget? footer,
     Widget? content}) {
   final appTheme = context.read<AppTheme>();
+  final theme = FluentTheme.of(context);
 
   return Container(
     constraints: appTheme.itemConstraints,
     decoration: BoxDecoration(
-        borderRadius: appTheme.brInner,
-        color: FluentTheme.of(context).micaBackgroundColor.toAccentColor()),
+      borderRadius: appTheme.brInner,
+    ),
     clipBehavior: Clip.hardEdge,
-    child: Padding(
+    child: Card(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -144,8 +144,10 @@ Widget itemBuilder(
 
 class AppTheme extends ChangeNotifier {
   AppTheme() {
-    _accentColorPrimary = themes['Autumn']![0];
-    _accentColorSecondary = themes['Autumn']![1];
+    // _accentColorPrimary = themes['Autumn']![0];
+    // _accentColorSecondary = themes['Autumn']![1];
+    _accentColorPrimary = themes['System']![0];
+    _accentColorSecondary = themes['System']![1];
   }
 
   final double itemSpacing = 4.0;
@@ -218,8 +220,8 @@ class AppTheme extends ChangeNotifier {
 
   Map<String, List<AccentColor>> themes = {
     'System': [
-      SystemTheme.accentColor.accent.toAccentColor(),
-      SystemTheme.accentColor.accent.toAccentColor()
+      SystemTheme.accentColor.accent.toAccentColor().lighter.toAccentColor(),
+      SystemTheme.accentColor.accent.toAccentColor().lighter.toAccentColor()
     ],
     'Fluent': [
       kDefaultSystemAccentColor.toAccentColor(),

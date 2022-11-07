@@ -137,10 +137,6 @@ class MangaDex implements MangaSource {
 
     if (data['attributes']['description'].isNotEmpty) {
       description = data['attributes']['description'].values.first;
-
-      if (description!.indexOf('---') > 0) {
-        description = description.substring(1, description.indexOf('---'));
-      }
     }
 
     List<String> tags = [];

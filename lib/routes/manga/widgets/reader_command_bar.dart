@@ -67,7 +67,6 @@ class _ReaderCommandBarState extends State<ReaderCommandBar> {
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOutCubic,
                             child: Card(
-                              elevation: 10.0,
                               borderRadius: appTheme.brOuter,
                               padding: const EdgeInsets.all(4.0),
                               child:

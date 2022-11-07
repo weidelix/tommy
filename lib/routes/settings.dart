@@ -29,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
-          onPress: () {
+          onPressed: () {
             NavigationManager().push(routeSettingsPersonalization);
           }),
       navigationItemBuilder(
@@ -37,7 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'About',
           subtitle: 'Updates, what\'s new & privacy policy',
           icon: fui.FluentIcons.info_24_regular,
-          onPress: () {
+          onPressed: () {
             NavigationManager().push(routeSettingsAbout);
           }),
     ];
@@ -108,15 +108,14 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
             footer: SizedBox(
               width: 170,
               // height: 28,
-              child: Combobox<ThemeMode>(
-                comboboxColor: Colors.magenta,
+              child: ComboBox<ThemeMode>(
                 value: appTheme.mode,
                 items: const [
-                  ComboboxItem<ThemeMode>(
+                  ComboBoxItem<ThemeMode>(
                       child: Text('System default'), value: ThemeMode.system),
-                  ComboboxItem<ThemeMode>(
+                  ComboBoxItem<ThemeMode>(
                       child: Text('Light'), value: ThemeMode.light),
-                  ComboboxItem<ThemeMode>(
+                  ComboBoxItem<ThemeMode>(
                       child: Text('Dark'), value: ThemeMode.dark),
                 ],
                 onChanged: (value) {
@@ -339,17 +338,17 @@ class _SettingsAboutState extends State<SettingsAbout> {
           context: context,
           icon: fui.FluentIcons.star_24_regular,
           title: 'What\'s new',
-          onPress: () {}),
+          onPressed: () {}),
       navigationItemBuilder(
           context: context,
           icon: fui.FluentIcons.branch_24_regular,
           title: 'Open source licenses',
-          onPress: () {}),
+          onPressed: () {}),
       navigationItemBuilder(
           context: context,
           icon: fui.FluentIcons.lock_closed_24_regular,
           title: 'Privacy policy',
-          onPress: () {}),
+          onPressed: () {}),
     ]);
   }
 }

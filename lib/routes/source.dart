@@ -181,6 +181,7 @@ class _MangaItemState extends State<MangaItem> {
     checkMemory();
     final hover = Matrix4.identity()..translate(0.0, -3.00);
     final appTheme = context.read<AppTheme>();
+    final theme = FluentTheme.of(context);
 
     return GestureDetector(
       onTap: () => NavigationManager().push(routeManga, widget.manga),
@@ -195,40 +196,30 @@ class _MangaItemState extends State<MangaItem> {
             duration: const Duration(milliseconds: 80),
             width: width,
             height: height,
-            decoration: BoxDecoration(
-                color: isHovering
-                    ? Colors.black.withOpacity(0.15)
-                    : Colors.black.withOpacity(0.1),
-                borderRadius: const BorderRadius.all(Radius.circular(8))),
-            child: Padding(
+            child: Card(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(4))),
-                      child: CachedNetworkImage(
-                        width: width - 24,
-                        height: (width - 24) * imageAspectRatio,
-                        fit: BoxFit.cover,
-                        cacheManager: GlobalImageCacheManager(),
-                        cacheKey: widget.manga.id,
-                        imageUrl: widget.manga.cover,
-                        errorWidget: (context, url, error) => const Mica(
-                          child: SizedBox(
-                              width: 180,
-                              height: 300,
-                              child: Center(
-                                child: Icon(
-                                    fui.FluentIcons.image_off_24_regular,
-                                    size: 20),
-                              )),
-                        ),
-                      )),
-                  // const SizedBox(width: 16),
+                  CachedNetworkImage(
+                    width: width - 24,
+                    height: (width - 24) * imageAspectRatio,
+                    fit: BoxFit.cover,
+                    cacheManager: GlobalImageCacheManager(),
+                    cacheKey: widget.manga.id,
+                    imageUrl: widget.manga.cover,
+                    errorWidget: (context, url, error) => const Mica(
+                      child: SizedBox(
+                          width: 180,
+                          height: 300,
+                          child: Center(
+                            child: Icon(fui.FluentIcons.image_off_24_regular,
+                                size: 20),
+                          )),
+                    ),
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

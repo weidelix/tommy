@@ -34,13 +34,13 @@ class Tommy extends StatelessWidget {
             title: 'Tommy',
             themeMode: appTheme.mode,
             darkTheme: ThemeData(
-              animationCurve: Curves.easeInOutCubic,
-              typography: appTheme.typography.apply(displayColor: Colors.white),
-              visualDensity: VisualDensity.standard,
-              fontFamily: appTheme.fontFamily,
-              accentColor: appTheme.accentColorPrimary,
-              brightness: Brightness.dark,
-            ),
+                animationCurve: Curves.easeInOutCubic,
+                typography:
+                    appTheme.typography.apply(displayColor: Colors.white),
+                visualDensity: VisualDensity.standard,
+                fontFamily: appTheme.fontFamily,
+                accentColor: appTheme.accentColorPrimary,
+                brightness: Brightness.dark),
             theme: ThemeData(
                 animationCurve: Curves.easeInOutCubic,
                 typography:

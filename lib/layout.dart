@@ -65,12 +65,11 @@ class _LayoutState extends State<Layout> {
   @override
   Widget build(BuildContext context) {
     final appTheme = context.read<AppTheme>();
-    return ChangeNotifierProvider(
-        create: (_) => SourceProvider(),
-        builder: (context, _) {
-          return Mica(
-              child: Stack(children: [
-            SizedBox(
+    return Mica(
+      child: ScaffoldPage(
+          padding: EdgeInsets.zero,
+          header: Mica(
+            child: SizedBox(
               height: appWindow.titleBarHeight + 12,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,29 +123,32 @@ class _LayoutState extends State<Layout> {
                     child: MoveWindow(),
                   ),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    MinimizeWindowButton(colors: _buttonColors),
+                    MinimizeWindowButton(animate: true, colors: _buttonColors),
                     WindowButton(
+                      animate: true,
                       colors: _buttonColors,
                       iconBuilder: (buttonContext) => appWindow.isMaximized
                           ? RestoreIcon(color: buttonContext.iconColor)
                           : MaximizeIcon(color: buttonContext.iconColor),
                       onPressed: () => appWindow.maximizeOrRestore(),
                     ),
-                    CloseWindowButton(colors: _closeButtonColors),
+                    CloseWindowButton(
+                        animate: true, colors: _closeButtonColors),
                   ])
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(top: appWindow.titleBarHeight + 12),
-              child: Navigator(
-                key: NavigationManager().rootToMangaNavigator,
-                onGenerateRoute: _onGenerateRoute,
-                initialRoute: routeRoot,
-              ),
-            )
-          ]));
-        });
+          ),
+          content: ChangeNotifierProvider(
+              create: (_) => SourceProvider(),
+              builder: (context, _) {
+                return Navigator(
+                  key: NavigationManager().rootToMangaNavigator,
+                  onGenerateRoute: _onGenerateRoute,
+                  initialRoute: routeRoot,
+                );
+              })),
+    );
   }
 
   Route _onGenerateRoute(RouteSettings settings) {

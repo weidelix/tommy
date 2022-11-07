@@ -11,10 +11,10 @@ class BrowsePage extends StatefulWidget {
   const BrowsePage({Key? key}) : super(key: key);
 
   @override
-  _BrowsePageState createState() => _BrowsePageState();
+  BrowsePageState createState() => BrowsePageState();
 }
 
-class _BrowsePageState extends State<BrowsePage> {
+class BrowsePageState extends State<BrowsePage> {
   @override
   void dispose() {
     super.dispose();
@@ -67,57 +67,50 @@ class _SourceCardState extends State<SourceCard> {
     final source = context.read<SourceProvider>();
     final appTheme = context.read<AppTheme>();
 
-    return Mica(
-      elevation: 2,
+    return Card(
+      padding: const EdgeInsets.all(16.0),
       borderRadius: appTheme.brOuter,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          height: 150,
-          width: 250,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: SizedBox(
+        height: 150,
+        width: 250,
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Center(
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        widget.icon,
+                        const SizedBox(width: 8.0),
+                        Text(widget.title, style: appTheme.subtitle),
+                      ]),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Center(
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            widget.icon,
-                            const SizedBox(width: 8.0),
-                            Text(widget.title, style: appTheme.subtitle),
-                          ]),
-                    ),
+                    child: FilledButton(
+                        child: const Text('Latest'),
+                        onPressed: () {
+                          source.activeSource = source.sources[widget.title]!;
+                          NavigationManager().push(routeBrowseSource);
+                        }),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: FilledButton(
-                            child: const Text('Latest'),
-                            onPressed: () {
-                              source.activeSource =
-                                  source.sources[widget.title]!;
-                              NavigationManager().push(routeBrowseSource);
-                            }),
-                      ),
-                      gapWidth(8.0),
-                      IconButton(
-                          icon: const Icon(fui.FluentIcons.globe_24_regular,
-                              size: 20),
-                          onPressed: () {}),
-                      IconButton(
-                          icon: const Icon(fui.FluentIcons.settings_24_regular,
-                              size: 20),
-                          onPressed: () {})
-                    ],
-                  ),
-                ]),
-          ),
-        ),
+                  gapWidth(8.0),
+                  IconButton(
+                      icon: const Icon(fui.FluentIcons.globe_24_regular,
+                          size: 20),
+                      onPressed: () {}),
+                  IconButton(
+                      icon: const Icon(fui.FluentIcons.settings_24_regular,
+                          size: 20),
+                      onPressed: () {})
+                ],
+              ),
+            ]),
       ),
     );
   }

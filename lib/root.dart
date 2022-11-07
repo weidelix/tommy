@@ -26,6 +26,18 @@ class _RootPageState extends State<RootPage> {
   final List<int> _selectedHistory = [0];
   int _selected = 0;
 
+  late Widget nav = ScaffoldPage.withPadding(
+    header: PageHeader(
+        title: ValueListenableBuilder(
+            valueListenable: _title,
+            builder: (content, title, child) => Text(title as String))),
+    content: Navigator(
+        key: NavigationManager().mainNavigator,
+        initialRoute: routeLibrary,
+        onGenerateRoute: _onGenerateRoute,
+        observers: [NavigationHistoryObserver()]),
+  );
+
   @override
   void initState() {
     listen = NavigationHistoryObserver().historyChangeStream.listen((change) {
@@ -65,84 +77,65 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     return NavigationView(
-      pane: NavigationPane(
-        displayMode: PaneDisplayMode.compact,
-        selected: _selected,
-        onChanged: (i) {
-          if (i != _selected) {
-            setState(() {
-              _selectedHistory.add(i);
-              _selected = i;
-            });
-            switch (i) {
-              case 0:
-                NavigationManager().push(routeLibrary);
-                break;
-              case 1:
-                NavigationManager().push(routeBrowse);
-                break;
-              case 2:
-                NavigationManager().push(routeHistory);
-                break;
-              case 3:
-                NavigationManager().push(routeSettings);
-                break;
+        paneBodyBuilder: (selectedPaneItemBody) => nav,
+        transitionBuilder: (child, animation) => child,
+        pane: NavigationPane(
+          displayMode: PaneDisplayMode.compact,
+          selected: _selected,
+          onChanged: (i) {
+            if (i != _selected) {
+              setState(() {
+                _selectedHistory.add(i);
+                _selected = i;
+              });
             }
-          }
-        },
-        size: const NavigationPaneSize(
-          openWidth: 250,
-          openMinWidth: 200,
-          openMaxWidth: 250,
-        ),
-        items: [
-          PaneItem(
-              icon: Icon(
-                  _selected == 0
-                      ? fui.FluentIcons.library_24_filled
-                      : fui.FluentIcons.library_24_regular,
-                  size: 20),
-              title: const Text(
-                'Library',
-              )),
-          PaneItem(
-              icon: Icon(
-                  _selected == 1
-                      ? fui.FluentIcons.compass_northwest_24_filled
-                      : fui.FluentIcons.compass_northwest_24_regular,
-                  size: 20),
-              title: const Text('Browse')),
-          PaneItem(
-              icon: Icon(
-                  _selected == 2
-                      ? fui.FluentIcons.history_24_filled
-                      : fui.FluentIcons.history_24_regular,
-                  size: 20),
-              title: const Text('History')),
-        ],
-        footerItems: [
-          PaneItem(
-              icon: Icon(
-                  _selected == 3
-                      ? fui.FluentIcons.settings_24_filled
-                      : fui.FluentIcons.settings_24_regular,
-                  size: 20),
-              title: const Text('Settings'))
-        ],
-      ),
-      content: ScaffoldPage.withPadding(
-        header: PageHeader(
-            title: ValueListenableBuilder(
-                valueListenable: _title,
-                builder: (content, title, child) => Text(title as String))),
-        content: Navigator(
-          key: NavigationManager().mainNavigator,
-          initialRoute: routeLibrary,
-          onGenerateRoute: _onGenerateRoute,
-          observers: [NavigationHistoryObserver()],
-        ),
-      ),
-    );
+          },
+          size: const NavigationPaneSize(
+            openWidth: 250,
+            openMinWidth: 200,
+            openMaxWidth: 250,
+          ),
+          items: [
+            PaneItem(
+                icon: Icon(
+                    _selected == 0
+                        ? fui.FluentIcons.library_24_filled
+                        : fui.FluentIcons.library_24_regular,
+                    size: 20),
+                title: const Text('Library'),
+                body: const SizedBox.shrink(),
+                onTap: () => NavigationManager().push(routeLibrary)),
+            PaneItem(
+                icon: Icon(
+                    _selected == 1
+                        ? fui.FluentIcons.compass_northwest_24_filled
+                        : fui.FluentIcons.compass_northwest_24_regular,
+                    size: 20),
+                title: const Text('Browse'),
+                body: const SizedBox.shrink(),
+                onTap: () => NavigationManager().push(routeBrowse)),
+            PaneItem(
+                icon: Icon(
+                    _selected == 2
+                        ? fui.FluentIcons.history_24_filled
+                        : fui.FluentIcons.history_24_regular,
+                    size: 20),
+                title: const Text('History'),
+                body: const SizedBox.shrink(),
+                onTap: () => NavigationManager().push(routeHistory)),
+          ],
+          footerItems: [
+            PaneItem(
+                icon: Icon(
+                    _selected == 3
+                        ? fui.FluentIcons.settings_24_filled
+                        : fui.FluentIcons.settings_24_regular,
+                    size: 20),
+                title: const Text('Settings'),
+                body: const SizedBox.shrink(),
+                onTap: () => NavigationManager().push(routeSettings)),
+          ],
+        ));
   }
 
   Route _onGenerateRoute(RouteSettings settings) {
@@ -179,13 +172,13 @@ class _RootPageState extends State<RootPage> {
     }
 
     if (!settings.name!.contains(routeSubPageSuffix)) {
-      return createRootPageAnimation(page, settings);
+      return _createRootPage(page, settings);
     }
 
-    return createSubPageAnimation(page, settings);
+    return _createSubPage(page, settings);
   }
 
-  Route createRootPageAnimation(Widget page, RouteSettings settings) {
+  Route _createRootPage(Widget page, RouteSettings settings) {
     return PageRouteBuilder(
         maintainState: false,
         settings: settings,
@@ -219,7 +212,7 @@ class _RootPageState extends State<RootPage> {
           }
 
           // Exit animation when pushing a new page
-          // adnd enter animation when popping page
+          // and enter animation when popping page
           return rootToRoot
               ? FadeTransition(
                   opacity: Tween(begin: 1.0, end: 0.0)
@@ -238,7 +231,7 @@ class _RootPageState extends State<RootPage> {
         });
   }
 
-  Route createSubPageAnimation(Widget page, RouteSettings settings) {
+  Route _createSubPage(Widget page, RouteSettings settings) {
     return PageRouteBuilder(
         maintainState: false,
         settings: settings,
