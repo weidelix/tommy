@@ -49,6 +49,8 @@ class NavigationManager {
   }
 
   void push(String route, [Object? arguments]) {
+    if (route == _currentRoute) return;
+
     if (route.contains('Manga')) {
       _instance.rootToMangaNavigator.currentState!
           .pushNamed(route, arguments: arguments);

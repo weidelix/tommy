@@ -125,7 +125,7 @@ class _MangaInfoState extends State<MangaInfo> {
         Stack(children: [
           SizedBox(
             width: double.infinity,
-            height: 500,
+            height: 600,
             child: CachedNetworkImage(
                 cacheManager: GlobalImageCacheManager(),
                 cacheKey: widget.manga.id,
@@ -138,17 +138,19 @@ class _MangaInfoState extends State<MangaInfo> {
           ),
           Container(
             width: double.infinity,
-            height: 500,
+            height: 600,
             decoration: BoxDecoration(
                 gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     stops: const [
                   0.5,
+                  0.8,
                   1.0,
                 ],
                     colors: [
                   bgColor.withOpacity(0),
+                  bgColor,
                   bgColor
                 ])),
           ),
@@ -156,7 +158,7 @@ class _MangaInfoState extends State<MangaInfo> {
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Padding(
               padding:
-                  const EdgeInsets.only(left: 200.0, top: 380.0, right: 200.0),
+                  const EdgeInsets.only(left: 250.0, top: 380.0, right: 250.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -164,8 +166,8 @@ class _MangaInfoState extends State<MangaInfo> {
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(
                       alignment: Alignment.topLeft,
-                      width: 210,
-                      height: 315,
+                      width: 250,
+                      height: 375,
                       decoration: BoxDecoration(borderRadius: appTheme.brOuter),
                       clipBehavior: Clip.antiAlias,
                       child: GestureDetector(
@@ -218,8 +220,8 @@ class _MangaInfoState extends State<MangaInfo> {
                           cacheManager: GlobalImageCacheManager(),
                           cacheKey: widget.manga.id,
                           imageUrl: widget.manga.cover,
-                          width: 210,
-                          height: 315,
+                          width: 250,
+                          height: 375,
                           fit: BoxFit.cover,
                           fadeInDuration: Duration.zero,
                           fadeOutDuration: Duration.zero,
@@ -229,7 +231,7 @@ class _MangaInfoState extends State<MangaInfo> {
                     gapWidth(32.0),
                     Expanded(
                       child: Container(
-                        constraints: const BoxConstraints(minHeight: 315),
+                        constraints: const BoxConstraints(minHeight: 375),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,24 +239,18 @@ class _MangaInfoState extends State<MangaInfo> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(
-                                    width: 600,
-                                    child: Text(
-                                      widget.manga.title,
-                                      style: appTheme.title,
-                                    )),
+                                Text(
+                                  widget.manga.title,
+                                  style: appTheme.titleLarge,
+                                ),
                                 gapHeight(8.0),
                                 Row(children: [
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        width: 600,
-                                        child: Text(
-                                            widget.manga.authors ?? 'Author(s)',
-                                            style: appTheme.caption),
-                                      ),
+                                      Text(widget.manga.authors ?? 'Author(s)',
+                                          style: appTheme.caption),
                                       Text(
                                         '${widget.manga.source} • ${widget.manga.status}',
                                         style: appTheme.caption,
@@ -278,15 +274,26 @@ class _MangaInfoState extends State<MangaInfo> {
                               ],
                             ),
                             Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   SizedBox(
-                                    width: 200,
+                                    height: 50,
+                                    width: 230,
                                     child: FilledButton(
-                                        child: const Text(
-                                          'Add to library',
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 230,
+                                              child: Text(
+                                                'Add to library',
+                                                textAlign: TextAlign.left,
+                                                style: appTheme.bodyStrong,
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                         onPressed: () {}),
                                   ),
@@ -343,7 +350,7 @@ class _MangaInfoState extends State<MangaInfo> {
         ]),
         gapHeight(32.0),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 200.0),
+          padding: const EdgeInsets.symmetric(horizontal: 250.0),
           child: Mica(
             borderRadius: BorderRadius.only(
                 topLeft: appTheme.brOuter.topLeft,
@@ -404,7 +411,7 @@ class _ChapterItemState extends State<ChapterItem> {
     return Opacity(
       opacity: widget.chapter.isRead ? 0.5 : 1.0,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 200.0),
+        padding: const EdgeInsets.symmetric(horizontal: 250.0),
         child: SizedBox(
           height: 70.0,
           child: Button(

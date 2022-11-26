@@ -69,7 +69,7 @@ class _ReaderCommandBarState extends State<ReaderCommandBar> {
                             child: Mica(
                               borderRadius: appTheme.brOuter,
                               child: Padding(
-                                padding: const EdgeInsets.all(4.0),
+                                padding: const EdgeInsets.all(8.0),
                                 child:
                                     Flex(direction: Axis.horizontal, children: [
                                   Tooltip(

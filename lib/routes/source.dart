@@ -197,7 +197,7 @@ class _MangaItemState extends State<MangaItem> {
             width: width,
             height: height,
             child: Card(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              borderRadius: appTheme.brOuter,
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -210,6 +210,15 @@ class _MangaItemState extends State<MangaItem> {
                     cacheManager: GlobalImageCacheManager(),
                     cacheKey: widget.manga.id,
                     imageUrl: widget.manga.cover,
+                    imageBuilder: (context, imageProvider) => ClipRRect(
+                      borderRadius: appTheme.brInner,
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        width: width - 24,
+                        height: (width - 24) * imageAspectRatio,
+                      ),
+                    ),
                     errorWidget: (context, url, error) => const Mica(
                       child: SizedBox(
                           width: 180,
