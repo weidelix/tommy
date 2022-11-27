@@ -17,7 +17,16 @@
 	</p>
 </div>
 
-## What's working
-- View and read latest chapters from [Mangadex](https://mangadex.org/). No manga browsing yet.
+<br/>
+
+## What's working 👍
+- View and read latest chapters from [Mangadex](https://mangadex.org/).
 - Light and dark mode + few accent colors.
 
+<br/>
+
+## What I'm working on 🛠️
+- Adding to library and working history
+- User preference (Persistent settings)
+- UI and layout adjustments
+- General code cleanup
