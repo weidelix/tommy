@@ -1,6 +1,6 @@
 class Manga {
   Manga(
-      {required this.id,
+      {required this.url,
       required this.title,
       required this.cover,
       required this.source,
@@ -8,7 +8,35 @@ class Manga {
       this.description,
       this.status});
 
-  String id;
+  Manga.fromJSON(Map<String, dynamic> json)
+      : url = json['url'],
+        title = json['title'],
+        cover = json['cover'],
+        source = json['source'],
+        authors = json['authors'],
+        description = json['description'],
+        status = json['status'],
+        isInLibrary = json['isInLibrary'],
+        tags =
+            (json['tags'] as List<dynamic>).map((e) => e.toString()).toList(),
+        chapters = (json['chapters'] as List<dynamic>)
+            .map((e) => Chapter.fromJSON(e as Map<String, dynamic>))
+            .toList();
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'title': title,
+        'cover': cover,
+        'source': source,
+        'authors': authors,
+        'description': description,
+        'status': status,
+        'tags': tags,
+        'isInLibrary': isInLibrary,
+        'chapters': chapters.map((e) => e.toJson()).toList(),
+      };
+
+  String url;
   String title;
   String cover;
   String source;
@@ -17,37 +45,57 @@ class Manga {
   String? status;
   String? lastRead;
   List<String> tags = [];
-  bool hasCompleteData = false;
-
   List<Chapter> chapters = [];
+  bool hasCompleteData = false;
+  bool isInLibrary = false;
 }
 
 class Chapter {
   Chapter(
-      {required this.id,
+      {required this.url,
       required this.title,
-      required this.uploader,
       required this.chapter,
       required this.dateUploaded,
-      required this.scanlationGroup,
       required this.pages,
-      required this.source});
+      this.uploader,
+      this.scanlationGroup});
 
-  final String id;
+  Chapter.fromJSON(Map<String, dynamic> json)
+      : url = json['url'],
+        title = json['title'],
+        uploader = json['uploader'],
+        chapter = json['chapter'],
+        dateUploaded = json['dateUploaded'],
+        pages = json['pages'],
+        read = json['read'],
+        scanlationGroup = json['scanlationGroup'];
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'title': title,
+        'uploader': uploader,
+        'chapter': chapter,
+        'dateUploaded': dateUploaded,
+        'pages': pages,
+        'read': read,
+        'scanlationGroup': scanlationGroup,
+      };
+
+  final String url;
   final String title;
-  final String uploader;
   final String chapter;
   final String dateUploaded;
-  final String scanlationGroup;
   final int pages;
-  final String source;
-  bool isRead = false;
+  String? uploader;
+  String? scanlationGroup;
+  bool read = false;
 }
 
 abstract class MangaSource {
   String title = 'Source';
+  Future<List<Manga>> searchMangaRequest(String title);
   Future<List<Manga>> latestUpdatesRequest([int page = 1]);
-  Future<List<Chapter>> fetchChapters(String id);
+  Future<List<Chapter>> fetchChapters(String url);
   Future<List<String>> readChapter(Chapter chapter);
   Future<void> getFullMangaData(Manga manga) async {
     manga.hasCompleteData = true;
