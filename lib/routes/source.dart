@@ -1,15 +1,13 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/constants/route_names.dart';
 import 'package:xview/routes/navigation_manager.dart';
-import 'package:xview/cache_managers/global_image_cache_manager.dart';
-import 'package:xview/sources/manga_source.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/utils/utils.dart';
 import 'package:xview/sources/source_provider.dart';
+import 'package:xview/widgets/manga_item.dart';
 
 class SourcePage extends StatefulWidget {
   const SourcePage({Key? key}) : super(key: key);
@@ -133,13 +131,18 @@ class _SourcePageState extends State<SourcePage> {
                     controller: controller,
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                            childAspectRatio: 176.0 / 300.0,
-                            mainAxisSpacing: 24.0,
-                            crossAxisSpacing: 16.0,
-                            maxCrossAxisExtent: 176.0),
+                            mainAxisSpacing: 30.0,
+                            crossAxisSpacing: 24.0,
+                            maxCrossAxisExtent: 150.0,
+                            mainAxisExtent: 225.0 + 40),
                     itemCount: source.latest.length,
-                    itemBuilder: (context, count) =>
-                        MangaItem(manga: source.latest[count]));
+                    itemBuilder: (context, count) => MangaItem(
+                        manga: source.latest[count],
+                        onPressed: () => NavigationManager()
+                            .push(routeManga, source.latest[count])
+                            .then((value) => setState(
+                                  () {},
+                                ))));
               },
             ),
           ),
@@ -155,96 +158,5 @@ class _SourcePageState extends State<SourcePage> {
             WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
           }));
     }
-  }
-}
-
-class MangaItem extends StatefulWidget {
-  const MangaItem({
-    required this.manga,
-    Key? key,
-  }) : super(key: key);
-
-  final Manga manga;
-
-  @override
-  State<MangaItem> createState() => _MangaItemState();
-}
-
-class _MangaItemState extends State<MangaItem> {
-  static const height = 300.0;
-  static const width = 176.0;
-  static const imageAspectRatio = 250 / width;
-  bool isHovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    checkMemory();
-    final hover = Matrix4.identity()..translate(0.0, -3.00);
-    final appTheme = context.read<AppTheme>();
-    final theme = FluentTheme.of(context);
-
-    return GestureDetector(
-      onTap: () => NavigationManager().push(routeManga, widget.manga),
-      child: MouseRegion(
-        onEnter: (onEnter) => setState(() => isHovering = true),
-        onExit: (onExit) => setState(() => isHovering = false),
-        child: Tooltip(
-          message: widget.manga.title,
-          useMousePosition: true,
-          child: AnimatedContainer(
-            transform: isHovering ? hover : Matrix4.identity(),
-            duration: const Duration(milliseconds: 80),
-            width: width,
-            height: height,
-            child: Card(
-              borderRadius: appTheme.brOuter,
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CachedNetworkImage(
-                    width: width - 24,
-                    height: (width - 24) * imageAspectRatio,
-                    fit: BoxFit.cover,
-                    cacheManager: GlobalImageCacheManager(),
-                    cacheKey: widget.manga.id,
-                    imageUrl: widget.manga.cover,
-                    imageBuilder: (context, imageProvider) => ClipRRect(
-                      borderRadius: appTheme.brInner,
-                      child: Image(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                        width: width - 24,
-                        height: (width - 24) * imageAspectRatio,
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => const Mica(
-                      child: SizedBox(
-                          width: 180,
-                          height: 300,
-                          child: Center(
-                            child: Icon(fui.FluentIcons.image_off_24_regular,
-                                size: 20),
-                          )),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(widget.manga.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.left,
-                          style: appTheme.bodyStrong),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

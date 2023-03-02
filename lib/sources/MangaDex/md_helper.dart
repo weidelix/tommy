@@ -16,10 +16,26 @@ class PageData {
 
 abstract class MDHelper {
   static String toCoverUrl(id, fileName) {
-    return 'https://' + MDBase.uploads + '/covers/$id/$fileName.256.jpg';
+    return 'https://${MDDomains.uploads}/covers/$id/$fileName.256.jpg';
   }
 
-  static Uri toServerUri(chapterId) {
-    return Uri.https(MDBase.api, MDPaths.server + '/$chapterId');
+  static String toServerUri(String chapterId) {
+    return Uri.https(MDDomains.api, '${MDPaths.server}/$chapterId').toString();
+  }
+
+  static String toMangaUri(String mangaId) {
+    return Uri.https(MDDomains.api, '${MDPaths.manga}/$mangaId').toString();
+  }
+
+  static String toChapterUri(Map<String, dynamic> query) {
+    return Uri.https(MDDomains.api, MDPaths.chapter, query).toString();
+  }
+
+  static String getChapterId(String url) {
+    return url.split('/').last;
+  }
+
+  static String getMangaId(String url) {
+    return url.split('/').last;
   }
 }

@@ -89,7 +89,7 @@ class _ReaderState extends State<_Reader> {
                           .map((url) => Page(
                               url: url,
                               cacheKey:
-                                  _currentChapter.id + (index++).toString()))
+                                  _currentChapter.url + (index++).toString()))
                           .toList();
                       return Padding(
                           padding: const EdgeInsets.only(right: 4.0),
@@ -123,7 +123,7 @@ class _ReaderState extends State<_Reader> {
     if (index - 1 >= 0) {
       setState(() {
         _currentChapter = widget.manga.chapters[index - 1];
-        _currentChapter.isRead = true;
+        _currentChapter.read = true;
       });
       _controller.jumpTo(0);
     } else {
@@ -137,7 +137,7 @@ class _ReaderState extends State<_Reader> {
     if (index + 1 < widget.manga.chapters.length) {
       setState(() {
         _currentChapter = widget.manga.chapters[index + 1];
-        _currentChapter.isRead = true;
+        _currentChapter.read = true;
       });
       _controller.jumpTo(0);
     } else {

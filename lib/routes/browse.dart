@@ -6,6 +6,7 @@ import 'package:xview/theme.dart';
 import 'package:xview/sources/source_provider.dart';
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/constants/route_names.dart';
+import 'package:xview/utils/utils.dart';
 
 class BrowsePage extends StatefulWidget {
   const BrowsePage({Key? key}) : super(key: key);
@@ -15,7 +16,6 @@ class BrowsePage extends StatefulWidget {
 }
 
 class BrowsePageState extends State<BrowsePage> {
-  @override
   void dispose() {
     super.dispose();
   }
@@ -96,7 +96,7 @@ class _SourceCardState extends State<SourceCard> {
                         child: const Text('Latest'),
                         onPressed: () {
                           source.activeSource = source.sources[widget.title]!;
-                          NavigationManager().push(routeBrowseSource);
+                          NavigationManager().push(routeBrowseSource, context);
                         }),
                   ),
                   gapWidth(8.0),

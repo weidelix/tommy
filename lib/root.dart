@@ -97,43 +97,28 @@ class _RootPageState extends State<RootPage> {
           ),
           items: [
             PaneItem(
-                icon: Icon(
-                    _selected == 0
-                        ? fui.FluentIcons.library_24_filled
-                        : fui.FluentIcons.library_24_regular,
-                    size: 20),
+                icon: const Icon(fui.FluentIcons.library_24_regular, size: 20),
                 title: const Text('Library'),
                 body: const SizedBox.shrink(),
-                onTap: () => NavigationManager().push(routeLibrary)),
+                onTap: () => NavigationManager().push(routeLibrary, context)),
             PaneItem(
-                icon: Icon(
-                    _selected == 1
-                        ? fui.FluentIcons.compass_northwest_24_filled
-                        : fui.FluentIcons.compass_northwest_24_regular,
+                icon: const Icon(fui.FluentIcons.compass_northwest_24_regular,
                     size: 20),
                 title: const Text('Browse'),
                 body: const SizedBox.shrink(),
-                onTap: () => NavigationManager().push(routeBrowse)),
+                onTap: () => NavigationManager().push(routeBrowse, context)),
             PaneItem(
-                icon: Icon(
-                    _selected == 2
-                        ? fui.FluentIcons.history_24_filled
-                        : fui.FluentIcons.history_24_regular,
-                    size: 20),
+                icon: const Icon(fui.FluentIcons.history_24_regular, size: 20),
                 title: const Text('History'),
                 body: const SizedBox.shrink(),
-                onTap: () => NavigationManager().push(routeHistory)),
+                onTap: () => NavigationManager().push(routeHistory, context)),
           ],
           footerItems: [
             PaneItem(
-                icon: Icon(
-                    _selected == 3
-                        ? fui.FluentIcons.settings_24_filled
-                        : fui.FluentIcons.settings_24_regular,
-                    size: 20),
+                icon: const Icon(fui.FluentIcons.settings_24_regular, size: 20),
                 title: const Text('Settings'),
                 body: const SizedBox.shrink(),
-                onTap: () => NavigationManager().push(routeSettings)),
+                onTap: () => NavigationManager().push(routeSettings, context)),
           ],
         ));
   }

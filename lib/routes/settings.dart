@@ -1,9 +1,12 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/constants/route_names.dart';
 import 'package:xview/theme.dart';
+import 'package:xview/user_preference.dart';
+import 'package:xview/utils/utils.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -30,7 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
           onPressed: () {
-            NavigationManager().push(routeSettingsPersonalization);
+            NavigationManager().push(routeSettingsPersonalization, context);
           }),
       navigationItemBuilder(
           context: context,
@@ -38,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
           subtitle: 'Updates, what\'s new & privacy policy',
           icon: fui.FluentIcons.info_24_regular,
           onPressed: () {
-            NavigationManager().push(routeSettingsAbout);
+            NavigationManager().push(routeSettingsAbout, context);
           }),
     ];
   }
@@ -109,18 +112,18 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
               width: 170,
               // height: 28,
               child: ComboBox<ThemeMode>(
-                value: appTheme.mode,
+                value: appTheme.darkMode,
                 items: const [
                   ComboBoxItem<ThemeMode>(
-                      child: Text('System default'), value: ThemeMode.system),
+                      value: ThemeMode.system, child: Text('System default')),
                   ComboBoxItem<ThemeMode>(
-                      child: Text('Light'), value: ThemeMode.light),
+                      value: ThemeMode.light, child: Text('Light')),
                   ComboBoxItem<ThemeMode>(
-                      child: Text('Dark'), value: ThemeMode.dark),
+                      value: ThemeMode.dark, child: Text('Dark')),
                 ],
                 onChanged: (value) {
                   setState(() {
-                    appTheme.mode = value!;
+                    appTheme.darkMode = value!;
                   });
                 },
               ),
@@ -159,14 +162,14 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
                               ],
                             ),
                             appTheme,
-                            appTheme.themes[key]!),
+                            key),
                         gapWidth()
                       ]);
                     }
 
                     return Row(children: [
-                      _themeCard(Text(key, style: appTheme.caption), appTheme,
-                          appTheme.themes[key]!),
+                      _themeCard(
+                          Text(key, style: appTheme.caption), appTheme, key),
                       gapWidth()
                     ]);
                   },
@@ -179,14 +182,15 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
     ]);
   }
 
-  Widget _themeCard(Widget title, AppTheme appTheme, List<AccentColor> accent) {
+  Widget _themeCard(Widget title, AppTheme appTheme, String key) {
     return SizedBox(
       width: 210,
       child: Button(
         onPressed: () {
           setState(() {
-            appTheme.accentColorPrimary = accent[0];
-            appTheme.accentColorSecondary = accent[1];
+            UserPreference().theme = key;
+            appTheme.accentColorPrimary = appTheme.themes[key]![0];
+            appTheme.accentColorSecondary = appTheme.themes[key]![0];
           });
         },
         child: Padding(
@@ -205,7 +209,7 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Mica(
-                              backgroundColor: accent[0],
+                              backgroundColor: appTheme.themes[key]![0],
                               borderRadius: appTheme.brInner,
                               child: const SizedBox(width: 50, height: 20)),
                           const Text(
@@ -217,7 +221,7 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: Mica(
-                                backgroundColor: accent[1],
+                                backgroundColor: appTheme.themes[key]![1],
                                 borderRadius: BorderRadius.circular(9999),
                                 child: const SizedBox(width: 20, height: 20)),
                           ),
@@ -274,9 +278,12 @@ class _SettingsAboutState extends State<SettingsAbout> {
                   ),
                   Opacity(
                     opacity: 0.7,
-                    child: Text(
-                      'Version: 0.1.4',
-                      style: appTheme.body,
+                    child: FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snapshot) => Text(
+                        'Version: ${snapshot.data?.version}',
+                        style: appTheme.body,
+                      ),
                     ),
                   )
                 ],
@@ -287,21 +294,6 @@ class _SettingsAboutState extends State<SettingsAbout> {
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(borderRadius: appTheme.brInner),
             child: OutlinedButton(
-              child: Row(children: [
-                Icon(fui.FluentIcons.arrow_sync_24_filled,
-                    size: 24, color: appTheme.accentColorSecondary),
-                gapWidth(),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Check for updates'),
-                  Opacity(
-                    opacity: 0.7,
-                    child: Text(
-                      'Last checked: 0 hours ago',
-                      style: appTheme.caption,
-                    ),
-                  )
-                ])
-              ]),
               onPressed: () {},
               style: ButtonStyle(
                   border: ButtonState.all(BorderSide.none),
@@ -330,6 +322,21 @@ class _SettingsAboutState extends State<SettingsAbout> {
                       return color;
                     }
                   })),
+              child: Row(children: [
+                Icon(fui.FluentIcons.arrow_sync_24_filled,
+                    size: 24, color: appTheme.accentColorSecondary),
+                gapWidth(),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Check for updates'),
+                  Opacity(
+                    opacity: 0.7,
+                    child: Text(
+                      'Last checked: 0 hours ago',
+                      style: appTheme.caption,
+                    ),
+                  )
+                ])
+              ]),
             ),
           )
         ]),

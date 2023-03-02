@@ -1,19 +1,23 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:collection/collection.dart';
 
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
 import 'package:xview/constants/route_names.dart';
+import 'package:xview/manga_manager.dart';
 import 'package:xview/routes/manga/manga_state_provider.dart';
 import 'package:xview/routes/manga/widgets/tags.dart';
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/source_provider.dart';
+import 'package:xview/utils/utils.dart';
 
 class MangaPage extends StatefulWidget {
   const MangaPage({required this.manga, Key? key}) : super(key: key);
@@ -32,26 +36,34 @@ class _MangaPageState extends State<MangaPage> {
 
   @override
   Widget build(BuildContext context) {
-    final source = context.read<SourceProvider>();
-    final manga = widget.manga;
+    checkMemory();
+    final sources = context.read<SourceProvider>().sources;
     final appTheme = context.read<AppTheme>();
+    final manga = widget.manga;
+    final chapters = widget.manga.chapters;
     final controller = ScrollController();
+    final palette = PaletteGenerator.fromImageProvider(
+        CachedNetworkImageProvider(
+          widget.manga.cover,
+          cacheManager: GlobalImageCacheManager(),
+          cacheKey: widget.manga.url,
+        ),
+        size: const Size(50, 50),
+        region: const Rect.fromLTRB(10, 10, 40, 40),
+        maximumColorCount: 8);
 
     return FutureBuilder<List<dynamic>>(
-      future: manga.chapters.isEmpty && !manga.hasCompleteData
+      future: manga.chapters.isEmpty
           ? Future.wait([
-              source.sources[manga.source]!.fetchChapters(manga.id),
-              source.sources[manga.source]!.getFullMangaData(manga)
+              sources[manga.source]!.fetchChapters(manga.url),
+              sources[manga.source]!.getFullMangaData(manga),
+              palette
             ])
-          : null,
+          : Future.wait([palette]),
       builder: (_, snapshot) {
         if (snapshot.hasError) {
           NavigationManager().back();
-          showSnackbar(
-              context,
-              Snackbar(
-                content: Text(snapshot.error.toString()),
-              ),
+          showSnackbar(context, Snackbar(content: Text('${snapshot.error}')),
               duration: const Duration(seconds: 5));
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
@@ -63,12 +75,10 @@ class _MangaPageState extends State<MangaPage> {
                     gapHeight(),
                     const ProgressBar()
                   ]));
-        } else if (snapshot.hasData) {
-          if (manga.chapters.length !=
-              (snapshot.data![0] as List<Chapter>).length) {
-            manga.chapters.addAll((snapshot.data![0] as List<Chapter>));
-
-            manga.chapters.sort((a, b) =>
+        } else if (snapshot.hasData && snapshot.data!.length > 1) {
+          if (chapters.length != snapshot.data![0].length) {
+            chapters.addAll(snapshot.data![0]);
+            chapters.sort((a, b) =>
                 double.parse(b.chapter).compareTo(double.parse(a.chapter)));
           }
 
@@ -88,25 +98,61 @@ class _MangaPageState extends State<MangaPage> {
                   itemBuilder: (context, index) => index != 0
                       ? ChapterItem(
                           manga: manga, chapter: manga.chapters[index - 1])
-                      : MangaInfo(manga: manga)),
+                      : MangaInfo(
+                          manga: manga,
+                          palette: snapshot.data!.length > 1
+                              ? snapshot.data![2]
+                              : snapshot.data![0],
+                          onRefresh: refreshManga)),
             ),
           ),
         );
       },
     );
   }
+
+  void refreshManga() {
+    final sources = context.read<SourceProvider>().sources;
+    final manga = widget.manga;
+    final chapters = widget.manga.chapters;
+
+    sources[manga.source]!.getFullMangaData(manga);
+    sources[manga.source]!.fetchChapters(manga.url).then((value) {
+      setState(() {
+        for (var chapter in value) {
+          if (chapters.singleWhereOrNull((c) => c.url == chapter.url) == null) {
+            chapters.add(chapter);
+          }
+        }
+        chapters.sort((a, b) =>
+            double.parse(b.chapter).compareTo(double.parse(a.chapter)));
+        MangaManager().save();
+      });
+    });
+  }
 }
 
 class MangaInfo extends StatefulWidget {
-  const MangaInfo({required this.manga, Key? key}) : super(key: key);
+  const MangaInfo(
+      {required this.manga,
+      required this.palette,
+      required this.onRefresh,
+      Key? key})
+      : super(key: key);
 
   final Manga manga;
+  final PaletteGenerator palette;
+  final void Function() onRefresh;
 
   @override
   State<MangaInfo> createState() => _MangaInfoState();
 }
 
 class _MangaInfoState extends State<MangaInfo> {
+  static const double width = 220;
+  static const double height = 330;
+  late Future<ImageProvider> image;
+
   @override
   void dispose() {
     super.dispose();
@@ -118,7 +164,7 @@ class _MangaInfoState extends State<MangaInfo> {
     final theme = FluentTheme.of(context);
     final bgColor = theme.micaBackgroundColor;
     Chapter? lastRead = widget.manga.chapters
-        .firstWhereOrNull((element) => element.id == widget.manga.lastRead);
+        .firstWhereOrNull((element) => element.url == widget.manga.lastRead);
 
     return Column(
       children: [
@@ -128,7 +174,7 @@ class _MangaInfoState extends State<MangaInfo> {
             height: 600,
             child: CachedNetworkImage(
                 cacheManager: GlobalImageCacheManager(),
-                cacheKey: widget.manga.id,
+                cacheKey: widget.manga.url,
                 imageUrl: widget.manga.cover,
                 alignment: const Alignment(0.5, -0.6),
                 fit: BoxFit.cover,
@@ -166,8 +212,8 @@ class _MangaInfoState extends State<MangaInfo> {
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(
                       alignment: Alignment.topLeft,
-                      width: 250,
-                      height: 375,
+                      width: width,
+                      height: height,
                       decoration: BoxDecoration(borderRadius: appTheme.brOuter),
                       clipBehavior: Clip.antiAlias,
                       child: GestureDetector(
@@ -218,10 +264,10 @@ class _MangaInfoState extends State<MangaInfo> {
                         },
                         child: CachedNetworkImage(
                           cacheManager: GlobalImageCacheManager(),
-                          cacheKey: widget.manga.id,
+                          cacheKey: widget.manga.url,
                           imageUrl: widget.manga.cover,
-                          width: 250,
-                          height: 375,
+                          width: width,
+                          height: height,
                           fit: BoxFit.cover,
                           fadeInDuration: Duration.zero,
                           fadeOutDuration: Duration.zero,
@@ -231,7 +277,7 @@ class _MangaInfoState extends State<MangaInfo> {
                     gapWidth(32.0),
                     Expanded(
                       child: Container(
-                        constraints: const BoxConstraints(minHeight: 375),
+                        constraints: const BoxConstraints(minHeight: height),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -279,24 +325,9 @@ class _MangaInfoState extends State<MangaInfo> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   SizedBox(
-                                    height: 50,
-                                    width: 230,
-                                    child: FilledButton(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Center(
-                                            child: SizedBox(
-                                              width: 230,
-                                              child: Text(
-                                                'Add to library',
-                                                textAlign: TextAlign.left,
-                                                style: appTheme.bodyStrong,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        onPressed: () {}),
-                                  ),
+                                      height: 50,
+                                      width: 230,
+                                      child: _addToLibraryButton(context)),
                                   gapWidth(),
                                   Row(
                                     children: [
@@ -325,7 +356,7 @@ class _MangaInfoState extends State<MangaInfo> {
                                               fui.FluentIcons
                                                   .arrow_clockwise_24_regular,
                                               size: 16),
-                                          onPressed: () {}),
+                                          onPressed: widget.onRefresh),
                                       gapWidth(8.0),
                                       IconButton(
                                           icon: const Icon(
@@ -383,12 +414,58 @@ class _MangaInfoState extends State<MangaInfo> {
     );
   }
 
-  String? _getMinDscription() {
-    String? description = widget.manga.description;
-    int? index = description?.indexOf(RegExp(r'[.!?]'));
-    String? min = description?.substring(0, index! + 1);
+  Widget _addToLibraryButton(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+    final palette = widget.palette;
+    final color = (FluentTheme.of(context).brightness == Brightness.dark
+            ? palette.lightVibrantColor ?? palette.lightMutedColor
+            : palette.darkVibrantColor ?? palette.darkMutedColor) ??
+        palette.vibrantColor ??
+        palette.dominantColor;
 
-    return min;
+    return FilledButton(
+        style: ButtonStyle(
+            foregroundColor:
+                ButtonState.all(color!.titleTextColor.withOpacity(1.0)),
+            backgroundColor: ButtonState.resolveWith((states) =>
+                FilledButton.backgroundColor(
+                    ThemeData(accentColor: color.color.toAccentColor()),
+                    states))),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Center(
+            child: SizedBox(
+              width: 230,
+              child: Text(
+                !widget.manga.isInLibrary
+                    ? 'Add to library'
+                    : 'Remove from library',
+                textAlign: TextAlign.left,
+                style: appTheme.bodyStrong,
+              ),
+            ),
+          ),
+        ),
+        onPressed: () {
+          setState(() {
+            if (!widget.manga.isInLibrary) {
+              widget.manga.isInLibrary = true;
+              MangaManager().addManga(widget.manga);
+            } else {
+              widget.manga.isInLibrary = false;
+              MangaManager().removeManga(widget.manga);
+            }
+
+            MangaManager().save();
+          });
+        });
+  }
+
+  String? _getMinDscription() {
+    String? desc = widget.manga.description;
+    int? i = desc?.indexOf(RegExp(r'[.?!]'));
+
+    return desc?.substring(0, i! + 1);
   }
 }
 
@@ -409,7 +486,7 @@ class _ChapterItemState extends State<ChapterItem> {
     final appTheme = context.read<AppTheme>();
 
     return Opacity(
-      opacity: widget.chapter.isRead ? 0.5 : 1.0,
+      opacity: widget.chapter.read ? 0.5 : 1.0,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 250.0),
         child: SizedBox(
@@ -426,12 +503,13 @@ class _ChapterItemState extends State<ChapterItem> {
                   routeMangaRead,
                   MangaReaderState(
                       manga: widget.manga, chapter: widget.chapter));
-              widget.manga.lastRead = widget.chapter.id;
+              widget.manga.lastRead = widget.chapter.url;
 
               // Crude checking whether chapter is read
-              if (!widget.chapter.isRead) {
+              if (!widget.chapter.read) {
                 setState(() {
-                  widget.chapter.isRead = true;
+                  widget.chapter.read = true;
+                  MangaManager().save();
                 });
               }
             },
@@ -443,7 +521,7 @@ class _ChapterItemState extends State<ChapterItem> {
                   children: [
                     Text(
                       widget.chapter.chapter != '-1'
-                          ? 'Chapter ${widget.chapter.chapter} ${widget.chapter.title != '' ? '- ' + widget.chapter.title : ''}'
+                          ? 'Chapter ${widget.chapter.chapter} ${widget.chapter.title != '' ? '- ${widget.chapter.title}' : ''}'
                           : 'Oneshot',
                       textAlign: TextAlign.left,
                       style: appTheme.body,
@@ -451,7 +529,7 @@ class _ChapterItemState extends State<ChapterItem> {
                     Opacity(
                       opacity: 0.7,
                       child: Text(
-                        '${widget.chapter.dateUploaded} • ${widget.chapter.scanlationGroup}',
+                        '${widget.chapter.dateUploaded} • ${widget.chapter.scanlationGroup ?? 'Unknown'}',
                         style: appTheme.caption,
                       ),
                     ),

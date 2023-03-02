@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/constants/route_names.dart';
+import 'package:xview/manga_manager.dart';
 import 'package:xview/root.dart';
 import 'package:xview/routes/manga/manga.dart';
 import 'package:xview/routes/manga/manga_reader.dart';
@@ -15,6 +16,7 @@ import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/source_provider.dart';
 import 'package:xview/theme.dart';
+import 'package:xview/utils/utils.dart';
 
 class Layout extends StatefulWidget {
   const Layout({Key? key}) : super(key: key);
@@ -79,38 +81,43 @@ class _LayoutState extends State<Layout> {
                     child: ValueListenableBuilder(
                       valueListenable: _canGoBack,
                       builder: (context, bool value, child) => IconButton(
-                        icon: const Icon(fui.FluentIcons.arrow_left_24_regular,
-                            size: 14),
-                        style: ButtonStyle(
-                            padding: ButtonState.all(const EdgeInsets.symmetric(
-                                horizontal: 12.0, vertical: 10.0)),
-                            backgroundColor: ButtonState.resolveWith((states) {
-                              final brightness =
-                                  FluentTheme.of(context).brightness;
-                              late Color color;
-                              if (brightness == Brightness.light) {
-                                if (states.isPressing) {
-                                  color = const Color(0xFFf2f2f2);
-                                } else if (states.isHovering) {
-                                  color = const Color(0xFFF6F6F6);
+                          icon: const Icon(
+                              fui.FluentIcons.arrow_left_24_regular,
+                              size: 14),
+                          style: ButtonStyle(
+                              padding: ButtonState.all(
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 12.0, vertical: 10.0)),
+                              backgroundColor:
+                                  ButtonState.resolveWith((states) {
+                                final brightness =
+                                    FluentTheme.of(context).brightness;
+                                late Color color;
+                                if (brightness == Brightness.light) {
+                                  if (states.isPressing) {
+                                    color = const Color(0xFFf2f2f2);
+                                  } else if (states.isHovering) {
+                                    color = const Color(0xFFF6F6F6);
+                                  } else {
+                                    color = Colors.white.withOpacity(0.0);
+                                  }
+                                  return color;
                                 } else {
-                                  color = Colors.white.withOpacity(0.0);
+                                  if (states.isPressing) {
+                                    color = const Color(0xFF272727);
+                                  } else if (states.isHovering) {
+                                    color = const Color(0xFF323232);
+                                  } else {
+                                    color = Colors.black.withOpacity(0.0);
+                                  }
+                                  return color;
                                 }
-                                return color;
-                              } else {
-                                if (states.isPressing) {
-                                  color = const Color(0xFF272727);
-                                } else if (states.isHovering) {
-                                  color = const Color(0xFF323232);
-                                } else {
-                                  color = Colors.black.withOpacity(0.0);
-                                }
-                                return color;
-                              }
-                            })),
-                        onPressed:
-                            value ? () => NavigationManager().back() : null,
-                      ),
+                              })),
+                          onPressed:
+                              // NavigationManager().canPop()
+                              () => NavigationManager().back()
+                          // : null,
+                          ),
                     ),
                   ),
                   gapWidth(16.0),
@@ -139,13 +146,17 @@ class _LayoutState extends State<Layout> {
               ),
             ),
           ),
-          content: ChangeNotifierProvider(
-              create: (_) => SourceProvider(),
+          content: MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => SourceProvider()),
+                // ChangeNotifierProvider(create: (_) => MangaManagerProvider()),
+              ],
               builder: (context, _) {
                 return Navigator(
                   key: NavigationManager().rootToMangaNavigator,
                   onGenerateRoute: _onGenerateRoute,
                   initialRoute: routeRoot,
+                  // observers: [NavigationHistoryObserver()],
                 );
               })),
     );
