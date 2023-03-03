@@ -97,9 +97,10 @@ class _LibraryPageState extends State<LibraryPage> {
                       }
                     })),
                 child: Row(children: [
-                  const Icon(fui.FluentIcons.arrow_sync_24_filled, size: 20),
+                  Icon(fui.FluentIcons.arrow_sync_24_filled,
+                      size: 20, color: appTheme.accentColorSecondary),
                   gapWidth(),
-                  const Text('Check for new chapters'),
+                  const Text('Update library'),
                 ]),
               ),
             ),
