@@ -32,7 +32,7 @@
 <br/>
 
 ## What I'm working on 🛠️
-- Automatic chapter updates
+- Automatically check new chapter updates
 - Reading history
 - Desktop notifications
 
