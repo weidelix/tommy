@@ -116,7 +116,7 @@ class _MangaPageState extends State<MangaPage> {
     final manga = widget.manga;
     final chapters = widget.manga.chapters;
 
-    sources[manga.source]!.getFullMangaData(manga);
+    // sources[manga.source]!.getFullMangaData(manga);
     sources[manga.source]!.fetchChapters(manga.url).then((value) {
       setState(() {
         for (var chapter in value) {
@@ -206,182 +206,206 @@ class _MangaInfoState extends State<MangaInfo> {
               padding:
                   const EdgeInsets.only(left: 250.0, top: 380.0, right: 250.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      width: width,
-                      height: height,
-                      decoration: BoxDecoration(borderRadius: appTheme.brOuter),
-                      clipBehavior: Clip.antiAlias,
-                      child: GestureDetector(
-                        onSecondaryTap: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) => ContentDialog(
-                                    title: Text(
-                                      'Cover',
-                                      style: appTheme.subtitle,
-                                    ),
-                                    content: Wrap(runSpacing: 8.0, children: [
-                                      Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text('Save image'),
-                                            IconButton(
-                                                icon: const Icon(
-                                                  fui.FluentIcons
-                                                      .arrow_download_16_regular,
-                                                  size: 18,
-                                                ),
-                                                onPressed: () {})
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            alignment: Alignment.topLeft,
+                            width: width,
+                            height: height,
+                            decoration:
+                                BoxDecoration(borderRadius: appTheme.brOuter),
+                            clipBehavior: Clip.antiAlias,
+                            child: GestureDetector(
+                              onSecondaryTap: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => ContentDialog(
+                                          title: Text(
+                                            'Cover',
+                                            style: appTheme.subtitle,
+                                          ),
+                                          content:
+                                              Wrap(runSpacing: 8.0, children: [
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  const Text('Save image'),
+                                                  IconButton(
+                                                      icon: const Icon(
+                                                        fui.FluentIcons
+                                                            .arrow_download_16_regular,
+                                                        size: 18,
+                                                      ),
+                                                      onPressed: () {})
+                                                ]),
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  const Text('Share'),
+                                                  IconButton(
+                                                      icon: const Icon(
+                                                        fui.FluentIcons
+                                                            .share_16_regular,
+                                                        size: 18,
+                                                      ),
+                                                      onPressed: () {})
+                                                ])
                                           ]),
-                                      Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text('Share'),
-                                            IconButton(
-                                                icon: const Icon(
-                                                  fui.FluentIcons
-                                                      .share_16_regular,
-                                                  size: 18,
-                                                ),
-                                                onPressed: () {})
-                                          ])
-                                    ]),
-                                    actions: [
-                                      Button(
-                                          child: const Text('Cancel'),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          }),
-                                    ],
-                                  ));
-                        },
-                        child: CachedNetworkImage(
-                          cacheManager: GlobalImageCacheManager(),
-                          cacheKey: widget.manga.url,
-                          imageUrl: widget.manga.cover,
-                          width: width,
-                          height: height,
-                          fit: BoxFit.cover,
-                          fadeInDuration: Duration.zero,
-                          fadeOutDuration: Duration.zero,
-                        ),
-                      ),
-                    ),
-                    gapWidth(32.0),
-                    Expanded(
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: height),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.manga.title,
-                                  style: appTheme.titleLarge,
-                                ),
-                                gapHeight(8.0),
-                                Row(children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(widget.manga.authors ?? 'Author(s)',
-                                          style: appTheme.caption),
-                                      Text(
-                                        '${widget.manga.source} • ${widget.manga.status}',
-                                        style: appTheme.caption,
-                                      ),
-                                    ],
-                                  ),
-                                ]),
-                                gapHeight(32.0),
-                                Wrap(
-                                  direction: Axis.horizontal,
-                                  spacing: 8.0,
-                                  runSpacing: 8.0,
-                                  children: widget.manga.tags
-                                      .map((e) => buildTag(context, e))
-                                      .toList(),
-                                ),
-                                gapHeight(32.0),
-                                Text(_getMinDscription() ?? 'Unknown',
-                                    style: appTheme.body),
-                                gapHeight(32.0),
-                              ],
+                                          actions: [
+                                            Button(
+                                                child: const Text('Cancel'),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                }),
+                                          ],
+                                        ));
+                              },
+                              child: CachedNetworkImage(
+                                cacheManager: GlobalImageCacheManager(),
+                                cacheKey: widget.manga.url,
+                                imageUrl: widget.manga.cover,
+                                width: width,
+                                height: height,
+                                fit: BoxFit.cover,
+                                fadeInDuration: Duration.zero,
+                                fadeOutDuration: Duration.zero,
+                              ),
                             ),
-                            Row(
+                          ),
+                          gapWidth(32.0),
+                          Expanded(
+                            child: Container(
+                              constraints:
+                                  const BoxConstraints(minHeight: height),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  SizedBox(
-                                      height: 50,
-                                      width: 230,
-                                      child: _addToLibraryButton(context)),
-                                  gapWidth(),
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      IconButton(
-                                          icon: const Icon(
-                                              fui.FluentIcons.play_24_regular,
-                                              size: 16),
-                                          onPressed: () {
-                                            if (widget.manga.lastRead == null) {
-                                              NavigationManager().push(
-                                                  routeMangaRead,
-                                                  MangaReaderState(
-                                                      manga: widget.manga,
-                                                      chapter: lastRead!));
-                                            } else {
-                                              NavigationManager().push(
-                                                  routeMangaRead,
-                                                  MangaReaderState(
-                                                      manga: widget.manga,
-                                                      chapter: lastRead!));
-                                            }
-                                          }),
-                                      gapWidth(8.0),
-                                      IconButton(
-                                          icon: const Icon(
-                                              fui.FluentIcons
-                                                  .arrow_clockwise_24_regular,
-                                              size: 16),
-                                          onPressed: widget.onRefresh),
-                                      gapWidth(8.0),
-                                      IconButton(
-                                          icon: const Icon(
-                                              fui.FluentIcons.share_24_regular,
-                                              size: 16),
-                                          onPressed: () {}),
+                                      Text(
+                                        widget.manga.title,
+                                        style: appTheme.titleLarge,
+                                      ),
+                                      gapHeight(8.0),
+                                      Row(children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                widget.manga.authors ??
+                                                    'Author(s)',
+                                                style: appTheme.caption),
+                                            Text(
+                                              '${widget.manga.source} • ${widget.manga.status}',
+                                              style: appTheme.caption,
+                                            ),
+                                          ],
+                                        ),
+                                      ]),
+                                      gapHeight(32.0),
+                                      Wrap(
+                                        direction: Axis.horizontal,
+                                        spacing: 8.0,
+                                        runSpacing: 8.0,
+                                        children: widget.manga.tags
+                                            .map((e) => buildTag(context, e))
+                                            .toList(),
+                                      ),
+                                      Visibility(
+                                        visible:
+                                            widget.manga.description != null,
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 16.0),
+                                          child: Text(_getMinDscription() ?? "",
+                                              style: appTheme.body),
+                                        ),
+                                      ),
+                                      gapHeight(32.0),
                                     ],
                                   ),
-                                ]),
-                          ],
-                        ),
-                      ),
-                    ),
+                                  Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        SizedBox(
+                                            height: 50,
+                                            width: 230,
+                                            child:
+                                                _addToLibraryButton(context)),
+                                        gapWidth(),
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                                icon: const Icon(
+                                                    fui.FluentIcons
+                                                        .play_24_regular,
+                                                    size: 16),
+                                                onPressed: () {
+                                                  if (widget.manga.lastRead ==
+                                                      null) {
+                                                    NavigationManager().push(
+                                                        routeMangaRead,
+                                                        MangaReaderState(
+                                                            manga: widget.manga,
+                                                            chapter:
+                                                                lastRead!));
+                                                  } else {
+                                                    NavigationManager().push(
+                                                        routeMangaRead,
+                                                        MangaReaderState(
+                                                            manga: widget.manga,
+                                                            chapter:
+                                                                lastRead!));
+                                                  }
+                                                }),
+                                            gapWidth(8.0),
+                                            IconButton(
+                                                icon: const Icon(
+                                                    fui.FluentIcons
+                                                        .arrow_clockwise_24_regular,
+                                                    size: 16),
+                                                onPressed: widget.onRefresh),
+                                            gapWidth(8.0),
+                                            IconButton(
+                                                icon: const Icon(
+                                                    fui.FluentIcons
+                                                        .share_24_regular,
+                                                    size: 16),
+                                                onPressed: () {}),
+                                          ],
+                                        ),
+                                      ]),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ]),
+                    Visibility(
+                        visible: widget.manga.description != null,
+                        child: Description(
+                            description: widget.manga.description ?? ""))
                   ]),
-                  gapHeight(32.0),
-                  Description(
-                      description: widget.manga.description ?? 'Unknown'),
-                ],
-              ),
             ),
           ),
         ]),
-        gapHeight(32.0),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 250.0),
+          padding: const EdgeInsets.only(left: 250.0, right: 250.0, top: 24.0),
           child: Mica(
             borderRadius: BorderRadius.only(
                 topLeft: appTheme.brOuter.topLeft,
@@ -429,7 +453,7 @@ class _MangaInfoState extends State<MangaInfo> {
                 ButtonState.all(color!.titleTextColor.withOpacity(1.0)),
             backgroundColor: ButtonState.resolveWith((states) =>
                 FilledButton.backgroundColor(
-                    ThemeData(accentColor: color.color.toAccentColor()),
+                    FluentThemeData(accentColor: color.color.toAccentColor()),
                     states))),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -606,45 +630,48 @@ class _DescriptionState extends State<Description> {
       style: appTheme.body,
     );
 
-    return Card(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Description',
-              style: appTheme.bodyStrong.apply(fontSizeFactor: 1.15),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24.0),
+      child: Card(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Description',
+                style: appTheme.bodyStrong.apply(fontSizeFactor: 1.15),
+              ),
             ),
-          ),
-          gapHeight(),
-          const Divider(size: double.infinity),
-          gapHeight(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    tap = !tap;
-                  });
-                },
-                child: AnimatedCrossFade(
-                    sizeCurve: Curves.easeInOut,
-                    firstCurve: Curves.easeIn,
-                    secondCurve: Curves.easeOut,
-                    crossFadeState: !tap
-                        ? CrossFadeState.showFirst
-                        : CrossFadeState.showSecond,
-                    duration: const Duration(milliseconds: 200),
-                    firstChild: minDesc,
-                    secondChild: maxDesc)),
-          ),
-          gapHeight(),
-          !tap
-              ? const Center(child: Icon(FluentIcons.chevron_down, size: 10))
-              : const Center(child: Icon(FluentIcons.chevron_up, size: 10))
-        ],
+            gapHeight(),
+            const Divider(size: double.infinity),
+            gapHeight(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      tap = !tap;
+                    });
+                  },
+                  child: AnimatedCrossFade(
+                      sizeCurve: Curves.easeInOut,
+                      firstCurve: Curves.easeIn,
+                      secondCurve: Curves.easeOut,
+                      crossFadeState: !tap
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      duration: const Duration(milliseconds: 200),
+                      firstChild: minDesc,
+                      secondChild: maxDesc)),
+            ),
+            gapHeight(),
+            !tap
+                ? const Center(child: Icon(FluentIcons.chevron_down, size: 10))
+                : const Center(child: Icon(FluentIcons.chevron_up, size: 10))
+          ],
+        ),
       ),
     );
   }

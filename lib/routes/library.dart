@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:navigation_history_observer/navigation_history_observer.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:provider/provider.dart';
 import 'package:xview/constants/route_names.dart';
 import 'package:xview/manga_manager.dart';
 import 'package:xview/routes/navigation_manager.dart';
-import 'package:xview/routes/source.dart';
 import 'package:xview/sources/manga_source.dart';
+import 'package:xview/sources/manga_updater.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/user_preference.dart';
 import 'package:xview/utils/utils.dart';
@@ -62,6 +62,12 @@ class _LibraryPageState extends State<LibraryPage> {
                             .toList();
                       });
                     })),
+            IconButton(
+                icon: const Icon(fui.FluentIcons.arrow_clockwise_24_regular,
+                    size: 20),
+                onPressed: () {
+                  showMangaUpdater(context);
+                })
             // Row(children: [
             //   gapWidth(8.0),
             //   _filterDialogBuilder(context),

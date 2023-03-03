@@ -36,6 +36,9 @@ class _MangaItemState extends State<MangaItem> {
     checkMemory();
     final appTheme = context.read<AppTheme>();
 
+    bool notInLibrary = (widget.manga.inLibrary &&
+        NavigationManager().currentRoute == routeBrowseSource);
+
     return GestureDetector(
       onTap: widget.onPressed,
       child: MouseRegion(
@@ -49,11 +52,8 @@ class _MangaItemState extends State<MangaItem> {
               width: width,
               height: height + 40,
               child: AnimatedOpacity(
-                opacity: isHovering ||
-                        (widget.manga.inLibrary &&
-                            NavigationManager().currentRoute ==
-                                routeBrowseSource)
-                    ? isHovering && widget.manga.inLibrary
+                opacity: isHovering || notInLibrary
+                    ? isHovering && notInLibrary
                         ? 0.5
                         : 0.7
                     : 1,
@@ -90,8 +90,7 @@ class _MangaItemState extends State<MangaItem> {
                 ),
               ),
             ),
-            widget.manga.inLibrary &&
-                    NavigationManager().currentRoute == routeBrowseSource
+            notInLibrary
                 ? Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
