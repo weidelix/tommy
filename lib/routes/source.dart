@@ -9,6 +9,8 @@ import 'package:xview/utils/utils.dart';
 import 'package:xview/sources/source_provider.dart';
 import 'package:xview/widgets/manga_item.dart';
 
+import '../sources/manga_source.dart';
+
 class SourcePage extends StatefulWidget {
   const SourcePage({Key? key}) : super(key: key);
 
@@ -18,6 +20,9 @@ class SourcePage extends StatefulWidget {
 
 class _SourcePageState extends State<SourcePage> {
   final controller = ScrollController();
+  bool _isLatest = true;
+  String _query = '';
+  List<Manga> _manga = [];
 
   @override
   void initState() {
@@ -80,70 +85,115 @@ class _SourcePageState extends State<SourcePage> {
                               ),
                             )),
                       ));
-                  source.fetchLatestData().whenComplete(() => setState(() {}));
+                  source.latestUpdates().whenComplete(() => setState(() {}));
                 }
               }
               return true;
             },
-            child: FutureBuilder(
-              future: source.latest.isEmpty ? source.fetchLatestData() : null,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Wrap(
+                    spacing: 8.0,
                     children: [
-                      Text(
-                        snapshot.error.toString(),
-                        style: appTheme.bodyStrong,
+                      SizedBox(
+                        width: 250,
+                        child: TextBox(
+                            placeholder: "Search for manga",
+                            onSubmitted: (value) => setState(() {
+                                  _query = value;
+                                  _isLatest = false;
+                                })),
                       ),
-                      gapHeight(32),
-                      IconButton(
-                          icon: const Icon(
-                            fui.FluentIcons.arrow_clockwise_24_regular,
-                            size: 24,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              source.reset();
-                            });
-                          }),
-                      Text(
-                        'Refresh',
-                        style: appTheme.caption,
-                      )
+                      ToggleButton(
+                        checked: _isLatest,
+                        child: const Text("Latest"),
+                        onChanged: (value) => setState(() {
+                          _isLatest = true;
+                          // source.reset();
+                        }),
+                      ),
                     ],
-                  ));
-                } else if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return WillPopScope(
-                    child: const Center(child: ProgressRing()),
-                    onWillPop: () async {
-                      source.reset();
-                      return true;
-                    },
-                  );
-                }
+                  ),
+                ),
+                Expanded(
+                  child: FutureBuilder(
+                    future: _isLatest
+                        ? source.latestList.isEmpty
+                            ? source.latestUpdates()
+                            : null
+                        : source.mangaSearchList.isEmpty
+                            ? source.searchManga(_query)
+                            : null,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              snapshot.error.toString(),
+                              style: appTheme.bodyStrong,
+                            ),
+                            gapHeight(32),
+                            IconButton(
+                                icon: const Icon(
+                                  fui.FluentIcons.arrow_clockwise_24_regular,
+                                  size: 24,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    source.reset();
+                                  });
+                                }),
+                            Text(
+                              'Refresh',
+                              style: appTheme.caption,
+                            )
+                          ],
+                        ));
+                      } else if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return WillPopScope(
+                          child: const Center(child: ProgressRing()),
+                          onWillPop: () async {
+                            source.reset();
+                            return true;
+                          },
+                        );
+                      }
 
-                WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
-                return GridView.builder(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    controller: controller,
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                            mainAxisSpacing: 30.0,
-                            crossAxisSpacing: 24.0,
-                            maxCrossAxisExtent: 150.0,
-                            mainAxisExtent: 225.0 + 40),
-                    itemCount: source.latest.length,
-                    itemBuilder: (context, count) => MangaItem(
-                        manga: source.latest[count],
-                        onPressed: () => NavigationManager()
-                            .push(routeManga, source.latest[count])
-                            .then((value) => setState(
-                                  () {},
-                                ))));
-              },
+                      if (_isLatest) {
+                        _manga = source.latestList;
+                      } else {
+                        _manga = source.mangaSearchList;
+                      }
+
+                      WidgetsBinding.instance
+                          .addPostFrameCallback(_checkIfCanScroll);
+                      return GridView.builder(
+                          padding: const EdgeInsets.only(right: 4.0),
+                          controller: controller,
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  mainAxisSpacing: 30.0,
+                                  crossAxisSpacing: 24.0,
+                                  maxCrossAxisExtent: 150.0,
+                                  mainAxisExtent: 225.0 + 40),
+                          itemCount: _manga.length,
+                          itemBuilder: (context, count) => MangaItem(
+                              manga: _manga[count],
+                              onPressed: () => NavigationManager()
+                                  .push(routeManga, _manga[count])
+                                  .then((value) => setState(
+                                        () {},
+                                      ))));
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -152,9 +202,9 @@ class _SourcePageState extends State<SourcePage> {
   }
 
   void _checkIfCanScroll(Duration timestamp) {
-    if (controller.position.maxScrollExtent <= 0) {
+    if (controller.position.maxScrollExtent <= 0 && _isLatest) {
       final source = context.read<SourceProvider>();
-      source.fetchLatestData().whenComplete(() => setState(() {
+      source.latestUpdates().whenComplete(() => setState(() {
             WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
           }));
     }

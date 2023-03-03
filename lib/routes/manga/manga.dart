@@ -437,7 +437,7 @@ class _MangaInfoState extends State<MangaInfo> {
             child: SizedBox(
               width: 230,
               child: Text(
-                !widget.manga.isInLibrary
+                !widget.manga.inLibrary
                     ? 'Add to library'
                     : 'Remove from library',
                 textAlign: TextAlign.left,
@@ -448,11 +448,11 @@ class _MangaInfoState extends State<MangaInfo> {
         ),
         onPressed: () {
           setState(() {
-            if (!widget.manga.isInLibrary) {
-              widget.manga.isInLibrary = true;
+            if (!widget.manga.inLibrary) {
+              widget.manga.inLibrary = true;
               MangaManager().addManga(widget.manga);
             } else {
-              widget.manga.isInLibrary = false;
+              widget.manga.inLibrary = false;
               MangaManager().removeManga(widget.manga);
             }
 

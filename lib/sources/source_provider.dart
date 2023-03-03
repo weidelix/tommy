@@ -5,8 +5,10 @@ import 'package:xview/sources/manga_source.dart';
 
 class SourceProvider extends ChangeNotifier {
   final Map<String, MangaSource> sources = {'MangaDex': MangaDex()};
-  final List<Manga> _latest = [];
-  List<Manga> get latest => _latest;
+  final List<Manga> _latestList = [];
+  List<Manga> get latestList => _latestList;
+  final List<Manga> _mangaSearchList = [];
+  List<Manga> get mangaSearchList => _mangaSearchList;
 
   int page = 1;
   bool isFinishedLoading = true;
@@ -19,15 +21,24 @@ class SourceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchLatestData() async {
+  Future<void> latestUpdates() async {
     isFinishedLoading = false;
     final result = await activeSource.latestUpdatesRequest(page++);
-    _latest.addAll(result);
+    _latestList.addAll(result);
+    isFinishedLoading = true;
+  }
+
+  Future<void> searchManga(String title) async {
+    isFinishedLoading = false;
+    final result = await activeSource.searchMangaRequest(title);
+    _mangaSearchList.clear();
+    _mangaSearchList.addAll(result);
     isFinishedLoading = true;
   }
 
   void reset() {
-    _latest.clear();
+    _latestList.clear();
+    _mangaSearchList.clear();
     page = 1;
     scrollOffset = 0.0;
   }

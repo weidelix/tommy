@@ -50,22 +50,48 @@ class MangaDex implements MangaSource {
     }
   }
 
+  Future<List<Manga>> parseMangaSearch(Future<Response> res) async {
+    try {
+      final response = await res;
+      final searchResult = jsonDecode(response.body)['data'] as List<dynamic>;
+      final ids =
+          searchResult.map((element) => element['id'] as String).toList();
+
+      final Map<String, dynamic> query = {};
+
+      query.addAll(MDQueries.limit(ids.length));
+      query.addAll(MDQueries.includes(['cover_art']));
+      query.addAll(MDQueries.ids(ids));
+
+      final uri = Uri.https(MDDomains.api, MDPaths.manga, query);
+      var data = await get(uri);
+      var mangasData = jsonDecode(data.body);
+
+      if (mangasData['result'] == 'error') {
+        var error = mangasData['errors'].first;
+
+        throw HttpException(error['detail']);
+      }
+
+      List<Manga> mangas = [];
+      for (var manga in mangasData['data']) {
+        mangas.add(MangaManager().getManga(MDHelper.toMangaUri(manga['id'])) ??
+            await getMinMangaData(manga));
+      }
+
+      return mangas;
+    } catch (identifier) {
+      rethrow;
+    }
+  }
+
   @override
   Future<List<Manga>> searchMangaRequest(String title) async {
     final Map<String, dynamic> query = {};
     query.addAll(MDQueries.title(title));
 
-    final uri = Uri.https(MDDomains.api, MDPaths.manga, query);
-    var data = await get(uri);
-    var mangasData = jsonDecode(data.body);
-
-    List<Manga> mangas = [];
-    for (var manga in mangasData['data']) {
-      mangas.add(MangaManager().getManga(MDHelper.toMangaUri(manga['id'])) ??
-          await getMinMangaData(manga));
-    }
-
-    return mangas;
+    return parseMangaSearch(
+        get(Uri.https(MDDomains.api, MDPaths.manga, query)));
   }
 
   @override

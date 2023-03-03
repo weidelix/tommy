@@ -93,7 +93,7 @@ class _SourceCardState extends State<SourceCard> {
                 children: [
                   Expanded(
                     child: FilledButton(
-                        child: const Text('Latest'),
+                        child: const Text('Browse'),
                         onPressed: () {
                           source.activeSource = source.sources[widget.title]!;
                           NavigationManager().push(routeBrowseSource, context);

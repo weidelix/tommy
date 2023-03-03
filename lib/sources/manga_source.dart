@@ -16,7 +16,7 @@ class Manga {
         authors = json['authors'],
         description = json['description'],
         status = json['status'],
-        isInLibrary = json['isInLibrary'],
+        inLibrary = json['inLibrary'],
         tags =
             (json['tags'] as List<dynamic>).map((e) => e.toString()).toList(),
         chapters = (json['chapters'] as List<dynamic>)
@@ -32,7 +32,7 @@ class Manga {
         'description': description,
         'status': status,
         'tags': tags,
-        'isInLibrary': isInLibrary,
+        'inLibrary': inLibrary,
         'chapters': chapters.map((e) => e.toJson()).toList(),
       };
 
@@ -47,7 +47,7 @@ class Manga {
   List<String> tags = [];
   List<Chapter> chapters = [];
   bool hasCompleteData = false;
-  bool isInLibrary = false;
+  bool inLibrary = false;
 }
 
 class Chapter {
