@@ -13,20 +13,29 @@
 		</a>
 	</p>
 	<p align="center">
-		A manga reader for Windows.
+		A free and open source manga reader for Windows.
 	</p>
 </div>
 
 <br/>
 
-## What's working 👍
-- View and read latest chapters from [Mangadex](https://mangadex.org/).
+## Warning ⚠️
+[Tommy](https://github.com/weidelix/tommy) is still in very early stages of development and breaking changes are expected.
+
+<br/>
+
+## Features ✨
+- View and read latest chapters from [Mangadex](https://mangadex.org/) (More sources will be added in the future).
 - Light and dark mode + few accent colors.
+- Adding to library
 
 <br/>
 
 ## What I'm working on 🛠️
-- Adding to library and working history
-- User preference (Persistent settings)
-- UI and layout adjustments
-- General code cleanup
+- Automatic chapter updates
+- Reading history
+
+<br/>
+
+## Disclaimer
+The developer of this application does not have any affliation with the content providers available.
