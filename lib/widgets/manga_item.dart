@@ -5,6 +5,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:provider/provider.dart';
 
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
+import 'package:xview/constants/route_names.dart';
+import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/utils/utils.dart';
@@ -47,7 +49,14 @@ class _MangaItemState extends State<MangaItem> {
               width: width,
               height: height + 40,
               child: AnimatedOpacity(
-                opacity: isHovering ? 0.7 : 1,
+                opacity: isHovering ||
+                        (widget.manga.inLibrary &&
+                            NavigationManager().currentRoute ==
+                                routeBrowseSource)
+                    ? isHovering && widget.manga.inLibrary
+                        ? 0.5
+                        : 0.7
+                    : 1,
                 duration: const Duration(milliseconds: 80),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,12 +85,28 @@ class _MangaItemState extends State<MangaItem> {
                     EllipsisOverflowText(widget.manga.title,
                         maxLines: 2,
                         showEllipsisOnBreakLineOverflow: true,
-                        // softWrap: false,
                         style: appTheme.bodyStrong),
                   ],
                 ),
               ),
             ),
+            widget.manga.inLibrary &&
+                    NavigationManager().currentRoute == routeBrowseSource
+                ? Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Container(
+                        decoration: BoxDecoration(
+                            color: appTheme.accentColorPrimary,
+                            borderRadius: appTheme.brInner),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 2.0),
+                          child: Text("In Library",
+                              style: TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.bold)),
+                        )),
+                  )
+                : const SizedBox.shrink(),
           ]),
         ),
       ),
