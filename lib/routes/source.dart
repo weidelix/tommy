@@ -57,7 +57,8 @@ class _SourcePageState extends State<SourcePage> {
               source.scrollOffset = notification.metrics.pixels;
 
               if (notification.metrics.maxScrollExtent ==
-                  notification.metrics.pixels) {
+                      notification.metrics.pixels &&
+                  _isLatest) {
                 if (source.isFinishedLoading) {
                   showSnackbar(
                       context,
@@ -124,9 +125,7 @@ class _SourcePageState extends State<SourcePage> {
                         ? source.latestList.isEmpty
                             ? source.latestUpdates()
                             : null
-                        : source.mangaSearchList.isEmpty
-                            ? source.searchManga(_query)
-                            : null,
+                        : source.searchManga(_query),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
                         return Center(
