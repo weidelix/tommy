@@ -17,5 +17,6 @@ const routeMangaRead = 'MangaSub/Read';
 
 // Settings routes
 const routeSettingsGeneral = 'SettingsSub/General';
+const routeSettingsLibrary = 'SettingsSub/Library';
 const routeSettingsPersonalization = 'SettingsSub/Personalization';
 const routeSettingsAbout = 'SettingsSub/About';

@@ -60,6 +60,13 @@ class UserPreference {
     save();
   }
 
+  bool _updateLibraryOnStart = true;
+  bool get updateLibraryOnStart => _updateLibraryOnStart;
+  set updateLibraryOnStart(bool value) {
+    _updateLibraryOnStart = value;
+    save();
+  }
+
   Map<String, dynamic> toJson() => {
         'sort': _sort,
         'filter': _filter,

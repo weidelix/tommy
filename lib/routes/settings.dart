@@ -29,6 +29,14 @@ class _SettingsPageState extends State<SettingsPage> {
     itemsList = [
       navigationItemBuilder(
           context: context,
+          title: 'Library',
+          subtitle: 'Library updates & display',
+          icon: fui.FluentIcons.library_24_regular,
+          onPressed: () {
+            NavigationManager().push(routeSettingsLibrary, context);
+          }),
+      navigationItemBuilder(
+          context: context,
           title: 'Personalization',
           subtitle: 'Dark mode & themes',
           icon: fui.FluentIcons.paint_brush_24_regular,
@@ -247,6 +255,28 @@ class SettingsAbout extends StatefulWidget {
 }
 
 class _SettingsAboutState extends State<SettingsAbout> {
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+    installerStore: 'Unknown',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -278,12 +308,9 @@ class _SettingsAboutState extends State<SettingsAbout> {
                   ),
                   Opacity(
                     opacity: 0.7,
-                    child: FutureBuilder<PackageInfo>(
-                      future: PackageInfo.fromPlatform(),
-                      builder: (context, snapshot) => Text(
-                        'Version: ${snapshot.data?.version}',
-                        style: appTheme.body,
-                      ),
+                    child: Text(
+                      'Version: 0.2.4',
+                      style: appTheme.body,
                     ),
                   )
                 ],
@@ -356,6 +383,36 @@ class _SettingsAboutState extends State<SettingsAbout> {
           icon: fui.FluentIcons.lock_closed_24_regular,
           title: 'Privacy policy',
           onPressed: () {}),
+    ]);
+  }
+}
+
+class SettingsLibrary extends StatefulWidget {
+  const SettingsLibrary({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsLibrary> createState() => _SettingsLibraryState();
+}
+
+class _SettingsLibraryState extends State<SettingsLibrary> {
+  @override
+  Widget build(BuildContext context) {
+    final appTheme = context.read<AppTheme>();
+
+    return ListView(children: [
+      Wrap(runSpacing: appTheme.itemSpacing, children: [
+        itemBuilder(
+            context: context,
+            title: 'Update library on start',
+            footer: ToggleSwitch(
+                checked: UserPreference().updateLibraryOnStart,
+                onChanged: (value) {
+                  setState(() {
+                    UserPreference().updateLibraryOnStart = value;
+                  });
+                }),
+            icon: fui.FluentIcons.arrow_sync_24_regular)
+      ])
     ]);
   }
 }

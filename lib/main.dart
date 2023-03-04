@@ -31,28 +31,30 @@ class Tommy extends StatelessWidget {
     UserPreference();
 
     return ChangeNotifierProvider(
-            create: (context) => AppTheme(),
-            builder: (context, _) {
-                final appTheme = context.watch<AppTheme>();
+        create: (context) => AppTheme(),
+        builder: (context, _) {
+          final appTheme = context.watch<AppTheme>();
 
-                return FluentApp(
-                    title: 'Tommy',
-                    themeMode: appTheme.darkMode,
-                    darkTheme: FluentThemeData(
-                        typography: appTheme.typography.apply(displayColor: Colors.white),
-                    visualDensity: VisualDensity.standard,
-                    fontFamily: appTheme.fontFamily,
-                    accentColor: appTheme.accentColorPrimary,
-                    brightness: Brightness.dark),
-                    theme: FluentThemeData(
-                        typography: appTheme.typography.apply(displayColor: Colors.black),
-                    visualDensity: VisualDensity.standard,
-                    fontFamily: appTheme.fontFamily,
-                    accentColor: appTheme.accentColorPrimary,
-                    brightness: Brightness.light),
-                    home: const Layout(),
-                    debugShowCheckedModeBanner: false,
-            );
+          return FluentApp(
+            title: 'Tommy',
+            themeMode: appTheme.darkMode,
+            darkTheme: FluentThemeData(
+                typography:
+                    appTheme.typography.apply(displayColor: Colors.white),
+                visualDensity: VisualDensity.standard,
+                fontFamily: appTheme.fontFamily,
+                accentColor: appTheme.accentColorPrimary,
+                brightness: Brightness.dark),
+            theme: FluentThemeData(
+                typography:
+                    appTheme.typography.apply(displayColor: Colors.black),
+                visualDensity: VisualDensity.standard,
+                fontFamily: appTheme.fontFamily,
+                accentColor: appTheme.accentColorPrimary,
+                brightness: Brightness.light),
+            home: const Layout(),
+            debugShowCheckedModeBanner: false,
+          );
         });
-    }
+  }
 }

@@ -144,6 +144,9 @@ class _RootPageState extends State<RootPage> {
       case routeSettingsGeneral:
         page = const SettingsAbout();
         break;
+      case routeSettingsLibrary:
+        page = const SettingsLibrary();
+        break;
       case routeSettingsPersonalization:
         page = const SettingsPersonalization();
         break;

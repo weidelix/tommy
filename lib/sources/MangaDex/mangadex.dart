@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:xview/manga_manager.dart';
-
+import 'package:collection/collection.dart';
 import 'package:xview/sources/manga_source.dart';
 import 'package:xview/sources/MangaDex/md_constants.dart';
 import 'package:xview/sources/MangaDex/md_helper.dart';
@@ -112,7 +112,7 @@ class MangaDex implements MangaSource {
   }
 
   @override
-  Future<List<Chapter>> fetchChapters(String url) async {
+  Future<List<Chapter>> getChapters(String url) async {
     final Map<String, dynamic> query = {};
     final List<Chapter> chapters = [];
     int offset = 0;
@@ -204,8 +204,9 @@ class MangaDex implements MangaSource {
   }
 
   Future<Manga> getMinMangaData(dynamic data) async {
-    final fileName = (data['relationships'].firstWhere(
-        (element) => element['type'] == 'cover_art'))['attributes']['fileName'];
+    final fileName = ((data['relationships'] as List<dynamic>).firstWhereOrNull(
+            (element) => element['type'] == 'cover_art'))?['attributes']
+        ['fileName'];
 
     String url = MDHelper.toMangaUri(data['id']);
     String title = data['attributes']['title'].values.first;

@@ -55,7 +55,7 @@ class _MangaPageState extends State<MangaPage> {
     return FutureBuilder<List<dynamic>>(
       future: manga.chapters.isEmpty
           ? Future.wait([
-              sources[manga.source]!.fetchChapters(manga.url),
+              sources[manga.source]!.getChapters(manga.url),
               sources[manga.source]!.getFullMangaData(manga),
               palette
             ])
@@ -117,7 +117,7 @@ class _MangaPageState extends State<MangaPage> {
     final chapters = widget.manga.chapters;
 
     // sources[manga.source]!.getFullMangaData(manga);
-    sources[manga.source]!.fetchChapters(manga.url).then((value) {
+    sources[manga.source]!.getChapters(manga.url).then((value) {
       setState(() {
         for (var chapter in value) {
           if (chapters.singleWhereOrNull((c) => c.url == chapter.url) == null) {

@@ -99,7 +99,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 child: Row(children: [
                   Icon(fui.FluentIcons.arrow_sync_24_filled,
                       size: 20, color: appTheme.accentColorSecondary),
-                  gapWidth(),
+                  gapWidth(8.0),
                   const Text('Update library'),
                 ]),
               ),

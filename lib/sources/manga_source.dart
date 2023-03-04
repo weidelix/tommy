@@ -95,7 +95,7 @@ abstract class MangaSource {
   String title = 'Source';
   Future<List<Manga>> searchMangaRequest(String title);
   Future<List<Manga>> latestUpdatesRequest([int page = 1]);
-  Future<List<Chapter>> fetchChapters(String url);
+  Future<List<Chapter>> getChapters(String url);
   Future<List<String>> readChapter(Chapter chapter);
   Future<void> getFullMangaData(Manga manga) async {
     manga.hasCompleteData = true;

@@ -101,8 +101,8 @@ class AppTheme extends ChangeNotifier {
       SystemTheme.accentColor.accent.toAccentColor().lighter.toAccentColor()
     ],
     'Fluent': [
-      kDefaultSystemAccentColor.toAccentColor(),
-      kDefaultSystemAccentColor.toAccentColor(),
+      SystemTheme.fallbackColor.toAccentColor(),
+      SystemTheme.fallbackColor.toAccentColor(),
     ],
     'Autumn': [Colors.accentColors[2], Colors.accentColors[1]],
     'Ocean': [Colors.accentColors[6], Colors.accentColors[5]],
