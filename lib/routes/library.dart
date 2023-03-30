@@ -45,7 +45,7 @@ class _LibraryPageState extends State<LibraryPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child:
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             SizedBox(
@@ -124,21 +124,25 @@ class _LibraryPageState extends State<LibraryPage> {
                     ],
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.only(right: 4.0),
-                  controller: controller,
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      mainAxisSpacing: 30.0,
-                      crossAxisSpacing: 24.0,
-                      maxCrossAxisExtent: 150.0,
-                      mainAxisExtent: 225.0 + 40),
-                  itemCount: mangas.length,
-                  itemBuilder: (context, count) => MangaItem(
-                        manga: mangas[count],
-                        onPressed: () => NavigationManager()
-                            .push(routeManga, mangas[count])
-                            .then((value) => setState(() {})),
-                      )),
+              : Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      controller: controller,
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                              mainAxisSpacing: 30.0,
+                              crossAxisSpacing: 24.0,
+                              maxCrossAxisExtent: 150.0,
+                              mainAxisExtent: 225.0 + 40),
+                      itemCount: mangas.length,
+                      itemBuilder: (context, count) => MangaItem(
+                            manga: mangas[count],
+                            onPressed: () => NavigationManager()
+                                .push(routeManga, mangas[count])
+                                .then((value) => setState(() {})),
+                          )),
+                ),
         ),
       ],
     );

@@ -11,7 +11,9 @@ import 'package:xview/routes/library.dart';
 import 'package:xview/routes/navigation_manager.dart';
 import 'package:xview/routes/settings.dart';
 import 'package:xview/routes/source.dart';
+import 'package:xview/sources/manga_updater.dart';
 import 'package:xview/sources/source_provider.dart';
+import 'package:xview/user_preference.dart';
 
 class RootPage extends StatefulWidget {
   const RootPage({Key? key}) : super(key: key);
@@ -26,7 +28,7 @@ class _RootPageState extends State<RootPage> {
   final List<int> _selectedHistory = [0];
   int _selected = 0;
 
-  late Widget nav = ScaffoldPage.withPadding(
+  late Widget nav = ScaffoldPage(
     header: PageHeader(
         title: ValueListenableBuilder(
             valueListenable: _title,
@@ -65,6 +67,13 @@ class _RootPageState extends State<RootPage> {
 
       _title.value = context.read<SourceProvider>().activeSource.title;
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (UserPreference().updateLibraryOnStart) {
+        showMangaUpdater(context);
+      }
+    });
+
     super.initState();
   }
 

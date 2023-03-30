@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 
 import 'package:xview/constants/route_names.dart';
-import 'package:xview/manga_manager.dart';
 import 'package:xview/root.dart';
 import 'package:xview/routes/manga/manga.dart';
 import 'package:xview/routes/manga/manga_reader.dart';

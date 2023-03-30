@@ -72,6 +72,7 @@ class UserPreference {
         'filter': _filter,
         'darkMode': _darkMode,
         'theme': _theme,
+        'updateLibraryOnStart': _updateLibraryOnStart
       };
 
   void init() {
@@ -93,6 +94,7 @@ class UserPreference {
       _sort = json['sort'];
       _darkMode = json['darkMode'];
       _theme = json['theme'];
+      _updateLibraryOnStart = json['updateLibraryOnStart'];
     } catch (e) {
       save();
       read();
