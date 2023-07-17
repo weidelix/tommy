@@ -16,6 +16,7 @@ class BrowsePage extends StatefulWidget {
 }
 
 class BrowsePageState extends State<BrowsePage> {
+  @override
   void dispose() {
     super.dispose();
   }

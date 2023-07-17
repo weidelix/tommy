@@ -6,8 +6,8 @@ class GlobalImageCacheManager extends CacheManager with ImageCacheManager {
   static final GlobalImageCacheManager _instance = GlobalImageCacheManager._(
     Config(
       key,
-      stalePeriod: const Duration(days: 1),
-      maxNrOfCacheObjects: 50,
+      stalePeriod: const Duration(days: 30),
+      maxNrOfCacheObjects: 200,
       fileService: HttpFileService(),
     ),
   );

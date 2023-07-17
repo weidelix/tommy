@@ -2,7 +2,10 @@ import 'package:ellipsis_overflow_text/ellipsis_overflow_text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import 'package:image_compression_flutter/image_compression_flutter.dart';
 
 import 'package:xview/cache_managers/global_image_cache_manager.dart';
 import 'package:xview/constants/route_names.dart';
@@ -29,7 +32,16 @@ class _MangaItemState extends State<MangaItem> {
   static const width = 250.0;
   static const height = 225.0;
   static const imageAspectRatio = (height) / (width);
+  ImageFile? compressedImage;
   bool isHovering = false;
+  bool processing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print('init');
+    _compressImage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +80,23 @@ class _MangaItemState extends State<MangaItem> {
                       cacheManager: GlobalImageCacheManager(),
                       cacheKey: widget.manga.url,
                       imageUrl: widget.manga.cover,
-                      imageBuilder: (context, imageProvider) => ClipRRect(
-                        borderRadius: appTheme.brInner,
-                        child: Image(image: imageProvider, fit: BoxFit.cover),
-                      ),
+                      imageBuilder: (context, imageProvider) {
+                        if (compressedImage != null) {
+                          return ClipRRect(
+                              borderRadius: appTheme.brInner,
+                              child: Image.memory(
+                                compressedImage!.rawBytes,
+                                fit: BoxFit.cover,
+                              ));
+                        } else {
+                          return ClipRRect(
+                              borderRadius: appTheme.brInner,
+                              child: Image(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ));
+                        }
+                      },
                       errorWidget: (context, url, error) => const Mica(
                         child: SizedBox(
                             width: 180,
@@ -110,5 +135,25 @@ class _MangaItemState extends State<MangaItem> {
         ),
       ),
     );
+  }
+
+  void _compressImage() async {
+    FileInfo? fi =
+        await GlobalImageCacheManager().getFileFromCache(widget.manga.url);
+
+    if (fi == null) {
+      final res = get(Uri.parse(widget.manga.cover));
+      ImageFile image =
+          ImageFile(filePath: "", rawBytes: (await res).bodyBytes);
+
+      compressedImage = await compressor.compressJpg(ImageFileConfiguration(
+          input: image, config: const Configuration(quality: 80)));
+
+      GlobalImageCacheManager().putFile(
+          widget.manga.cover, compressedImage!.rawBytes,
+          key: widget.manga.url);
+
+      setState(() {});
+    }
   }
 }

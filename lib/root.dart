@@ -33,11 +33,14 @@ class _RootPageState extends State<RootPage> {
         title: ValueListenableBuilder(
             valueListenable: _title,
             builder: (content, title, child) => Text(title as String))),
-    content: Navigator(
-        key: NavigationManager().mainNavigator,
-        initialRoute: routeLibrary,
-        onGenerateRoute: _onGenerateRoute,
-        observers: [NavigationHistoryObserver()]),
+    content: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Navigator(
+          key: NavigationManager().mainNavigator,
+          initialRoute: routeLibrary,
+          onGenerateRoute: _onGenerateRoute,
+          observers: [NavigationHistoryObserver()]),
+    ),
   );
 
   @override
@@ -86,7 +89,7 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     return NavigationView(
-        paneBodyBuilder: (selectedPaneItemBody) => nav,
+        paneBodyBuilder: (selectedPaneItemBody, child) => nav,
         transitionBuilder: (child, animation) => child,
         pane: NavigationPane(
           displayMode: PaneDisplayMode.compact,

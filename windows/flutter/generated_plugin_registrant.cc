@@ -8,6 +8,7 @@
 
 #include <bitsdojo_window_windows/bitsdojo_window_plugin.h>
 #include <flutter_acrylic/flutter_acrylic_plugin.h>
+#include <image_compression_flutter/image_compression_flutter_plugin.h>
 #include <system_theme/system_theme_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
@@ -15,6 +16,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("BitsdojoWindowPlugin"));
   FlutterAcrylicPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterAcrylicPlugin"));
+  ImageCompressionFlutterPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ImageCompressionFlutterPlugin"));
   SystemThemePluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SystemThemePlugin"));
 }

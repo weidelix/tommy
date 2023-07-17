@@ -44,74 +44,70 @@ class _LibraryPageState extends State<LibraryPage> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            SizedBox(
-                width: 250,
-                child: TextBox(
-                    placeholder: 'Search',
-                    onChanged: (value) {
-                      setState(() {
-                        mangas = MangaManager()
-                            .mangas
-                            .where((e) => e.title
-                                .toLowerCase()
-                                .contains(value.toLowerCase()))
-                            .toList();
-                      });
-                    })),
-            Container(
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(borderRadius: appTheme.brInner),
-              child: OutlinedButton(
-                onPressed: () {
-                  showMangaUpdater(context);
-                },
-                style: ButtonStyle(
-                    border: ButtonState.all(BorderSide.none),
-                    padding: ButtonState.all(const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 10.0)),
-                    backgroundColor: ButtonState.resolveWith((states) {
-                      final brightness = FluentTheme.of(context).brightness;
-                      late Color color;
-                      if (brightness == Brightness.light) {
-                        if (states.isPressing) {
-                          color = const Color(0xFFf2f2f2);
-                        } else if (states.isHovering) {
-                          color = const Color(0xFFF6F6F6);
-                        } else {
-                          color = Colors.white.withOpacity(0.0);
-                        }
-                        return color;
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          SizedBox(
+              width: 250,
+              child: TextBox(
+                  placeholder: 'Search',
+                  onChanged: (value) {
+                    setState(() {
+                      mangas = MangaManager()
+                          .mangas
+                          .where((e) => e.title
+                              .toLowerCase()
+                              .contains(value.toLowerCase()))
+                          .toList();
+                    });
+                  })),
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(borderRadius: appTheme.brInner),
+            child: OutlinedButton(
+              onPressed: () {
+                showMangaUpdater(context);
+              },
+              style: ButtonStyle(
+                  border: ButtonState.all(BorderSide.none),
+                  padding: ButtonState.all(const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 10.0)),
+                  backgroundColor: ButtonState.resolveWith((states) {
+                    final brightness = FluentTheme.of(context).brightness;
+                    late Color color;
+                    if (brightness == Brightness.light) {
+                      if (states.isPressing) {
+                        color = const Color(0xFFf2f2f2);
+                      } else if (states.isHovering) {
+                        color = const Color(0xFFF6F6F6);
                       } else {
-                        if (states.isPressing) {
-                          color = const Color(0xFF272727);
-                        } else if (states.isHovering) {
-                          color = const Color(0xFF323232);
-                        } else {
-                          color = Colors.black.withOpacity(0.0);
-                        }
-                        return color;
+                        color = Colors.white.withOpacity(0.0);
                       }
-                    })),
-                child: Row(children: [
-                  Icon(fui.FluentIcons.arrow_sync_24_filled,
-                      size: 20, color: appTheme.accentColorSecondary),
-                  gapWidth(8.0),
-                  const Text('Update library'),
-                ]),
-              ),
+                      return color;
+                    } else {
+                      if (states.isPressing) {
+                        color = const Color(0xFF272727);
+                      } else if (states.isHovering) {
+                        color = const Color(0xFF323232);
+                      } else {
+                        color = Colors.black.withOpacity(0.0);
+                      }
+                      return color;
+                    }
+                  })),
+              child: Row(children: [
+                Icon(fui.FluentIcons.arrow_sync_24_filled,
+                    size: 20, color: appTheme.accentColorSecondary),
+                gapWidth(8.0),
+                const Text('Update library'),
+              ]),
             ),
-            // Row(children: [
-            //   gapWidth(8.0),
-            //   _filterDialogBuilder(context),
-            //   gapWidth(8.0),
-            //   _sortDialogBuilder(context)
-            // ])
-          ]),
-        ),
+          ),
+          // Row(children: [
+          //   gapWidth(8.0),
+          //   _filterDialogBuilder(context),
+          //   gapWidth(8.0),
+          //   _sortDialogBuilder(context)
+          // ])
+        ]),
         Expanded(
           child: mangas.isEmpty
               ? Center(
@@ -127,7 +123,7 @@ class _LibraryPageState extends State<LibraryPage> {
               : Padding(
                   padding: const EdgeInsets.only(top: 16.0),
                   child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       controller: controller,
                       gridDelegate:
                           const SliverGridDelegateWithMaxCrossAxisExtent(

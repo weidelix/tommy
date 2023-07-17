@@ -50,8 +50,9 @@ class _MangaUpdaterState extends State<MangaUpdater> {
           severity:
               mangaCount > 0 ? InfoBarSeverity.info : InfoBarSeverity.error,
           style: InfoBarThemeData(
-              decoration: (severity) =>
-                  BoxDecoration(color: FluentTheme.of(context).cardColor),
+              decoration: (severity) => BoxDecoration(
+                  color: FluentTheme.of(context).cardColor,
+                  borderRadius: appTheme.brInner),
               icon: (severity) {
                 if (severity == InfoBarSeverity.error) {
                   return fui.FluentIcons.error_circle_24_regular;
