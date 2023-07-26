@@ -10,9 +10,10 @@ Widget gapHeight([double size = 16.0]) {
   return SizedBox(height: size);
 }
 
-Widget navigationItemBuilder(
+Widget buttonItemBuilder(
     {required BuildContext context,
     required String title,
+    bool navigationIndicator = true,
     String? subtitle,
     required IconData icon,
     required void Function() onPressed}) {
@@ -76,7 +77,9 @@ Widget navigationItemBuilder(
                 ),
               ],
             ),
-            const Icon(FluentIcons.chevron_right, size: 10)
+            navigationIndicator
+                ? const Icon(FluentIcons.chevron_right, size: 10)
+                : const SizedBox.shrink()
           ],
         ),
       ),

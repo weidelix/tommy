@@ -80,23 +80,18 @@ class _MangaItemState extends State<MangaItem> {
                       cacheManager: GlobalImageCacheManager(),
                       cacheKey: widget.manga.url,
                       imageUrl: widget.manga.cover,
-                      imageBuilder: (context, imageProvider) {
-                        if (compressedImage != null) {
-                          return ClipRRect(
-                              borderRadius: appTheme.brInner,
-                              child: Image.memory(
+                      imageBuilder: (context, imageProvider) => ClipRRect(
+                        borderRadius: appTheme.brInner,
+                        child: compressedImage != null
+                            ? Image.memory(
                                 compressedImage!.rawBytes,
                                 fit: BoxFit.cover,
-                              ));
-                        } else {
-                          return ClipRRect(
-                              borderRadius: appTheme.brInner,
-                              child: Image(
+                              )
+                            : Image(
                                 image: imageProvider,
                                 fit: BoxFit.cover,
-                              ));
-                        }
-                      },
+                              ),
+                      ),
                       errorWidget: (context, url, error) => const Mica(
                         child: SizedBox(
                             width: 180,
@@ -153,6 +148,7 @@ class _MangaItemState extends State<MangaItem> {
           widget.manga.cover, compressedImage!.rawBytes,
           key: widget.manga.url);
 
+      checkMemory();
       setState(() {});
     }
   }
