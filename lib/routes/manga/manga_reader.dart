@@ -79,17 +79,22 @@ class _ReaderState extends State<_Reader> {
                     if (snapshot.hasError) {
                       showSnackbar(
                         context,
-                        Snackbar(
-                          content: Text(snapshot.error.toString()),
+                        InfoBar(
+                          title: Text(snapshot.error.toString()),
                         ),
                       );
                     } else if (snapshot.hasData) {
                       int index = 0;
                       final images = snapshot.data!
-                          .map((url) => Page(
-                              url: url,
-                              cacheKey:
-                                  _currentChapter.url + (index++).toString()))
+                          .map((url) => StatefulBuilder(
+                                builder: (context, setState) => Page(
+                                    onError: () {
+                                      setState(() {});
+                                    },
+                                    url: url,
+                                    cacheKey: _currentChapter.url +
+                                        (index++).toString()),
+                              ))
                           .toList();
                       return Padding(
                           padding: const EdgeInsets.only(right: 4.0),
@@ -127,7 +132,7 @@ class _ReaderState extends State<_Reader> {
       });
       _controller.jumpTo(0);
     } else {
-      showSnackbar(context, const Snackbar(content: Text('No next chapter')));
+      showSnackbar(context, const InfoBar(title: Text('No next chapter')));
     }
   }
 
@@ -228,15 +233,21 @@ class _ReaderState extends State<_Reader> {
 }
 
 class Page extends StatelessWidget {
-  const Page({required this.url, required this.cacheKey, Key? key})
+  const Page(
+      {required this.url,
+      required this.cacheKey,
+      required this.onError,
+      Key? key})
       : super(key: key);
 
   final String url;
   final String cacheKey;
+  final void Function() onError;
 
   @override
   Widget build(BuildContext context) {
-    return _buildImageWidget();
+    return StatefulBuilder(
+        builder: (context, setState) => _buildImageWidget(setState));
   }
 
   Widget _loadingBuilder(
@@ -250,14 +261,16 @@ class Page extends StatelessWidget {
     );
   }
 
-  CachedNetworkImage _buildImageWidget() {
+  CachedNetworkImage _buildImageWidget(
+      void Function(void Function()) setState) {
     return CachedNetworkImage(
       cacheManager: GlobalImageCacheManager(),
       cacheKey: cacheKey,
       imageUrl: url,
       progressIndicatorBuilder: _loadingBuilder,
       errorWidget: (context, url, error) => Center(
-          child: FilledButton(child: const Text('Refresh'), onPressed: () {})),
+          child:
+              FilledButton(onPressed: onError, child: const Text('Refresh'))),
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
       fadeInDuration: Duration.zero,
