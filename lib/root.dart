@@ -96,6 +96,7 @@ class _RootPageState extends State<RootPage> {
         transitionBuilder: (child, animation) => child,
         pane: NavigationPane(
           displayMode: PaneDisplayMode.compact,
+          menuButton: const SizedBox.shrink(),
           selected: _selected,
           onChanged: (i) {
             if (i != _selected) {
