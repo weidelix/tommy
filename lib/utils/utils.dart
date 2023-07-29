@@ -23,7 +23,8 @@ Widget buttonItemBuilder(
     constraints: appTheme.itemConstraints,
     child: Button(
       style: ButtonStyle(
-        border: ButtonState.all(BorderSide.none),
+        border:
+            ButtonState.all(BorderSide(color: Colors.black.withOpacity(0.1))),
         padding: ButtonState.all(EdgeInsets.zero),
         backgroundColor: ButtonState.resolveWith((Set<ButtonStates> states) {
           final theme = FluentTheme.of(context);
@@ -143,6 +144,18 @@ Widget itemBuilder(
       ),
     ),
   );
+}
+
+void showInfoBar(BuildContext context, String content) {
+  var appTheme = context.read<AppTheme>();
+  showSnackbar(
+      context,
+      InfoBar(
+          title: Text(content),
+          style: InfoBarThemeData(
+              decoration: (severity) => BoxDecoration(
+                  color: FluentTheme.of(context).cardColor,
+                  borderRadius: appTheme.brInner))));
 }
 
 void checkMemory() {
