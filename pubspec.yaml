@@ -47,6 +47,7 @@ dependencies:
   intl: ^0.18.0
   fluent_ui: ^4.7.0
   image_compression_flutter: ^1.0.3
+  connectivity_plus: ^4.0.1
 
 dev_dependencies:
   flutter_test:
