@@ -95,8 +95,18 @@ class _RootPageState extends State<RootPage> {
         paneBodyBuilder: (selectedPaneItemBody, child) => nav,
         transitionBuilder: (child, animation) => child,
         pane: NavigationPane(
+          autoSuggestBox: const AutoSuggestBox(
+              items: [],
+              placeholder: 'Search',
+              trailingIcon: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(
+                  fui.FluentIcons.search_12_regular,
+                  size: 12,
+                ),
+              )),
           displayMode: PaneDisplayMode.compact,
-          menuButton: const SizedBox.shrink(),
+          // menuButton: const SizedBox.shrink(),
           selected: _selected,
           onChanged: (i) {
             if (i != _selected) {

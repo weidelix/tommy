@@ -86,7 +86,7 @@ class _SourcePageState extends State<SourcePage> {
                               ),
                             )),
                       ));
-                  source.latestUpdates().whenComplete(() => setState(() {}));
+                  _getMangas().whenComplete(() => setState(() {}));
                 }
               }
               return true;
@@ -105,15 +105,26 @@ class _SourcePageState extends State<SourcePage> {
                             placeholder: "Search for manga",
                             onSubmitted: (value) => setState(() {
                                   _query = value;
-                                  _isLatest = false;
                                 })),
                       ),
                       ToggleButton(
-                        checked: _isLatest,
+                        checked: _isLatest && _query.isEmpty,
                         child: const Text("Latest"),
                         onChanged: (value) => setState(() {
                           _isLatest = true;
-                          // source.reset();
+                          _query = '';
+                          source.reset();
+                          _getMangas();
+                        }),
+                      ),
+                      ToggleButton(
+                        checked: !_isLatest && _query.isEmpty,
+                        child: const Text("Popular"),
+                        onChanged: (value) => setState(() {
+                          _isLatest = false;
+                          _query = '';
+                          source.reset();
+                          _getMangas();
                         }),
                       ),
                     ],
@@ -121,9 +132,9 @@ class _SourcePageState extends State<SourcePage> {
                 ),
                 Expanded(
                   child: FutureBuilder(
-                    future: _isLatest
-                        ? source.latestList.isEmpty
-                            ? source.latestUpdates()
+                    future: _query.isEmpty
+                        ? source.mangaList.isEmpty
+                            ? _getMangas()
                             : null
                         : source.searchManga(_query),
                     builder: (context, snapshot) {
@@ -164,8 +175,8 @@ class _SourcePageState extends State<SourcePage> {
                         );
                       }
 
-                      if (_isLatest) {
-                        _manga = source.latestList;
+                      if (_query.isEmpty) {
+                        _manga = source.mangaList;
                       } else {
                         _manga = source.mangaSearchList;
                       }
@@ -173,8 +184,7 @@ class _SourcePageState extends State<SourcePage> {
                       WidgetsBinding.instance
                           .addPostFrameCallback(_checkIfCanScroll);
                       return GridView.builder(
-                          padding:
-                              const EdgeInsets.only(left: 16.0, right: 16.0),
+                          padding: const EdgeInsets.only(right: 16.0),
                           controller: controller,
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -203,10 +213,18 @@ class _SourcePageState extends State<SourcePage> {
 
   void _checkIfCanScroll(Duration timestamp) {
     if (controller.position.maxScrollExtent <= 0 && _isLatest) {
-      final source = context.read<SourceProvider>();
-      source.latestUpdates().whenComplete(() => setState(() {
+      _getMangas().whenComplete(() => setState(() {
             WidgetsBinding.instance.addPostFrameCallback(_checkIfCanScroll);
           }));
+    }
+  }
+
+  Future<void> _getMangas() {
+    final source = context.read<SourceProvider>();
+    if (_isLatest) {
+      return source.latestUpdates();
+    } else {
+      return source.popularMangas();
     }
   }
 }

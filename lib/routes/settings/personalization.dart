@@ -3,7 +3,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart' as fui;
 import 'package:provider/provider.dart';
 
 import 'package:xview/theme.dart';
-import 'package:xview/user_preference.dart';
 import 'package:xview/utils/utils.dart';
 
 class SettingsPersonalization extends StatefulWidget {
@@ -95,7 +94,15 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
 
                     return Row(children: [
                       _themeCard(
-                          Text(key, style: appTheme.caption), appTheme, key),
+                          Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              key,
+                              style: appTheme.caption,
+                            ),
+                          ),
+                          appTheme,
+                          key),
                       gapWidth()
                     ]);
                   },
@@ -109,24 +116,26 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
   }
 
   Widget _themeCard(Widget title, AppTheme appTheme, String key) {
-    return SizedBox(
-      width: 210,
-      child: Button(
-        onPressed: () {
-          setState(() {
-            UserPreference().theme = key;
-            appTheme.accentColorPrimary = appTheme.themes[key]![0];
-            appTheme.accentColorSecondary = appTheme.themes[key]![0];
-          });
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Mica(
+    return Button(
+      onPressed: () {
+        appTheme.accentColorPrimary = appTheme.themes[key]![0];
+        appTheme.accentColorSecondary = appTheme.themes[key]![1];
+      },
+      child: SizedBox(
+        width: 180,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      width: 1.0, color: Colors.black.withOpacity(0.1)),
+                  borderRadius: appTheme.brInner),
+              clipBehavior: Clip.antiAlias,
+              child: Mica(
+                borderRadius: appTheme.brInner,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: SizedBox(
                     height: 130,
                     width: double.infinity,
@@ -155,10 +164,10 @@ class _SettingsPersonalizationState extends State<SettingsPersonalization> {
                   ),
                 ),
               ),
-              // const SizedBox(height: 8.0),
-              title
-            ],
-          ),
+            ),
+            // const SizedBox(height: 8.0),
+            Expanded(child: title)
+          ],
         ),
       ),
     );

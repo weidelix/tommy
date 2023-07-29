@@ -94,6 +94,7 @@ class Chapter {
 abstract class MangaSource {
   String title = 'Source';
   Future<List<Manga>> searchMangaRequest(String title);
+  Future<List<Manga>> popularMangasRequest([int page = 1]);
   Future<List<Manga>> latestUpdatesRequest([int page = 1]);
   Future<List<Chapter>> getChapters(String url);
   Future<List<String>> readChapter(Chapter chapter);

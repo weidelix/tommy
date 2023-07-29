@@ -39,7 +39,6 @@ class _MangaItemState extends State<MangaItem> {
   @override
   void initState() {
     super.initState();
-    print('init');
     _compressImage();
   }
 
@@ -82,15 +81,7 @@ class _MangaItemState extends State<MangaItem> {
                       imageUrl: widget.manga.cover,
                       imageBuilder: (context, imageProvider) => ClipRRect(
                         borderRadius: appTheme.brInner,
-                        child: compressedImage != null
-                            ? Image.memory(
-                                compressedImage!.rawBytes,
-                                fit: BoxFit.cover,
-                              )
-                            : Image(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image(image: imageProvider, fit: BoxFit.cover),
                       ),
                       errorWidget: (context, url, error) => const Mica(
                         child: SizedBox(
@@ -132,7 +123,7 @@ class _MangaItemState extends State<MangaItem> {
     );
   }
 
-  void _compressImage() async {
+  Future<void> _compressImage() async {
     FileInfo? fi =
         await GlobalImageCacheManager().getFileFromCache(widget.manga.url);
 
@@ -147,9 +138,6 @@ class _MangaItemState extends State<MangaItem> {
       GlobalImageCacheManager().putFile(
           widget.manga.cover, compressedImage!.rawBytes,
           key: widget.manga.url);
-
-      checkMemory();
-      setState(() {});
     }
   }
 }

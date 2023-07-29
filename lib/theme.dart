@@ -1,6 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:system_theme/system_theme.dart';
-import 'package:provider/provider.dart';
 import 'package:xview/user_preference.dart';
 
 class AppTheme extends ChangeNotifier {
@@ -39,7 +38,7 @@ class AppTheme extends ChangeNotifier {
 
   final itemConstraints = const BoxConstraints(minHeight: 70);
 
-  final String? _fontFamily = '';
+  final String _fontFamily = '';
   String? get fontFamily => _fontFamily;
 
   TextStyle get caption => _typography.caption!.apply(fontSizeFactor: scale);

@@ -4,6 +4,8 @@ abstract class MDPaths {
   static const author = '/author';
   static const server = '/at-home/server';
   static const cover = '/covers';
+  static const user = '/user';
+  static const group = '/group';
 }
 
 abstract class MDQueries {

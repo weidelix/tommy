@@ -15,7 +15,7 @@ class _SettingsGeneralState extends State<SettingsGeneral> {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(runSpacing: 4.0, children: const [
+    return const Wrap(runSpacing: 4.0, children: [
       // Text('Tabs', style: appTheme.bodyStrongAccent),
     ]);
   }

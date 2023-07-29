@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:xview/manga_manager.dart';
@@ -31,7 +33,41 @@ class MangaDex implements MangaSource {
       final uri = Uri.https(MDDomains.api, MDPaths.manga, query);
       var data = await get(uri);
       var mangasData = jsonDecode(data.body);
+      if (mangasData['result'] == 'error') {
+        var error = mangasData['errors'].first;
 
+        throw HttpException(error['detail']);
+      }
+
+      List<Manga> mangas = [];
+      for (var manga in mangasData['data']) {
+        mangas.add(MangaManager().getManga(MDHelper.toMangaUri(manga['id'])) ??
+            await getMinMangaData(manga));
+      }
+
+      return mangas;
+    } catch (identifier) {
+      rethrow;
+    }
+  }
+
+  Future<List<Manga>> parsePopularMangas(Future<Response> res) async {
+    try {
+      final response = await res;
+      final latest = jsonDecode(response.body)['data'] as List<dynamic>;
+
+      final latestIds =
+          latest.map((element) => element['id'] as String).toList();
+
+      final Map<String, dynamic> query = {};
+
+      query.addAll(MDQueries.limit(latestIds.length));
+      query.addAll(MDQueries.includes(['cover_art']));
+      query.addAll(MDQueries.ids(latestIds));
+
+      final uri = Uri.https(MDDomains.api, MDPaths.manga, query);
+      var data = await get(uri);
+      var mangasData = jsonDecode(data.body);
       if (mangasData['result'] == 'error') {
         var error = mangasData['errors'].first;
 
@@ -112,46 +148,114 @@ class MangaDex implements MangaSource {
   }
 
   @override
-  Future<List<Chapter>> getChapters(String url) async {
+  Future<List<Manga>> popularMangasRequest([int page = 1]) async {
     final Map<String, dynamic> query = {};
+    const limit = 50;
+
+    query.addAll(MDQueries.offset(limit * (page - 1)));
+    query.addAll(MDQueries.limit(limit));
+    query.addAll(MDQueries.includes(['user', 'scanlation_group', 'manga']));
+    query.addAll(MDQueries.contentRating(['safe', 'suggestive']));
+    query.addAll(MDQueries.originalLanguage(['en', 'ja', 'ko']));
+    query.addAll(MDQueries.order('rating', 'desc'));
+    return parsePopularMangas(
+        get(Uri.https(MDDomains.api, MDPaths.manga, query)));
+  }
+
+  Future<List<Chapter>> parseChapters(String url) async {
     final List<Chapter> chapters = [];
+    final Map<String, dynamic> query = {};
+    final groupsAndUser = <String, String>{};
+    final id = MDHelper.getMangaId(url);
     int offset = 0;
-    bool stop = false;
 
-    while (!stop) {
-      query.addAll(MDQueries.offset(100 * offset++));
-      query.addAll(MDQueries.manga(MDHelper.getMangaId(url)));
-      query.addAll(MDQueries.translatedLanguage(['en']));
-      query.addAll(MDQueries.order('chapter', 'asc'));
-      query.addAll(MDQueries.latestChapterLimit);
-      query.addAll(MDQueries.notIncludeFutureUpdates);
+    query.addAll(MDQueries.translatedLanguage(['en']));
+    query.addAll(MDQueries.order('chapter', 'asc'));
+    query.addAll(MDQueries.limit(500));
+    query.addAll(MDQueries.notIncludeFutureUpdates);
 
-      final uri = Uri.https(MDDomains.api, MDPaths.chapter, query);
+    final now = DateTime.now();
+    final today = DateFormat('yyyy/MM/dd').format(now);
+    final yesterday =
+        DateFormat('yyyy/MM/dd').format(now.subtract(const Duration(days: 1)));
 
-      final chaptersData = jsonDecode((await get(uri)).body);
+    final client = Client();
 
-      // TODO: Optimize checking of the last chapter
-      if (chaptersData['data'].isNotEmpty) {
-        for (var chapter in chaptersData['data']) {
-          if (!chapters.any((element) => element.url == chapter['api'])) {
+    int i = 0;
+    try {
+      while (true) {
+        query.addAll(MDQueries.offset(500 * offset++));
+
+        final uri =
+            Uri.https(MDDomains.api, '${MDPaths.manga}/$id/feed/', query);
+        final body = (await client.get(uri)).body;
+        i++;
+        final json = jsonDecode(body);
+        final chaptersData = json['data'];
+        final total = json['total'];
+
+        if (chaptersData.isNotEmpty) {
+          for (var chapter in chaptersData) {
+            bool isGroup = true;
+            final uploader = chapter['relationships'].firstWhere((e) {
+              isGroup = e['type'] == 'scanlation_group';
+              return isGroup || e['type'] == 'user';
+            })['id'];
+
+            if (groupsAndUser[uploader] == null) {
+              final groupUri = Uri.https(MDDomains.api,
+                  '${isGroup ? MDPaths.group : MDPaths.user}/$uploader');
+              final groupData = jsonDecode((await client.get(groupUri)).body);
+
+              groupsAndUser[uploader] = groupData['data']['attributes']
+                  [isGroup ? 'name' : 'username'];
+            }
+
+            final dateToCompare = DateFormat('yyyy/MM/dd')
+                .format(DateTime.parse(chapter['attributes']['updatedAt']));
+
+            String dateUploaded = '';
+            if (dateToCompare == today) {
+              dateUploaded = 'Today';
+            } else if (dateToCompare == yesterday) {
+              dateUploaded = 'Yesterday';
+            } else {
+              dateUploaded = dateToCompare;
+            }
+
+            final attr = chapter['attributes'];
             chapters.add(Chapter(
                 url: MDHelper.toServerUri(chapter['id']),
-                chapter: chapter['attributes']['chapter']?.trim() ?? '-1',
-                title: chapter['attributes']['title'] ?? '',
-                dateUploaded: chapter['attributes']['updatedAt']
-                    .split('T')[0]
-                    .replaceAll('-', '/'),
-                pages: chapter['attributes']['pages']));
-          } else {
-            stop = true;
+                chapter: attr['chapter']?.trim() ?? '-1',
+                title: attr['title'] ?? '',
+                dateUploaded: dateUploaded,
+                pages: attr['pages'],
+                scanlationGroup: groupsAndUser[uploader] ?? 'Anonymous'));
           }
+        } else {
+          break;
         }
-      } else {
-        stop = true;
+
+        if (total < 500) {
+          break;
+        }
       }
+    } finally {
+      client.close();
     }
 
     return chapters;
+  }
+
+  @override
+  Future<List<Chapter>> getChapters(String url) async {
+    final connectivityResult = await (Connectivity().checkConnectivity());
+
+    if (connectivityResult == ConnectivityResult.none) {
+      return [];
+    }
+
+    return compute(parseChapters, url);
   }
 
   @override
@@ -162,20 +266,18 @@ class MangaDex implements MangaSource {
     for (int i = 0; i < chapter.pages; ++i) {
       final data = PageData(pagesData);
       final url =
-          '${data.baseUrl}/data-saver/${data.hash}/${data.images['data-saver']![i]}';
+          '${data.baseUrl}/data/${data.hash}/${data.images['data']![i]}';
       pages.add(url);
     }
 
     return pages;
   }
 
-  @override
-  Future<void> getFullMangaData(Manga manga) async {
-    final uri = Uri.parse(manga.url);
-    final data = jsonDecode((await get(uri)).body)['data'];
-    String? description;
+  Manga parseFullMangaData(Map<String, dynamic> message) {
+    final data = jsonDecode(message['body'])['data'];
+    String? description = '';
 
-    if (data['attributes']['description'].isNotEmpty) {
+    if (data['attributes']['description']?.isNotEmpty) {
       description = data['attributes']['description'].values.first;
     }
 
@@ -186,21 +288,44 @@ class MangaDex implements MangaSource {
           .toList();
     }
 
-    final ids = (data['relationships'] as List<dynamic>)
-        .where((element) => element['type'] == 'author')
-        .map((e) => e['id'])
-        .toList(growable: false);
-
-    final authorsUri =
-        Uri.https(MDDomains.api, MDPaths.author, MDQueries.ids(ids));
-    final authorsData = jsonDecode((await get(authorsUri)).body)['data'];
+    final authorsData = jsonDecode(message['authorsBody'])['data'];
     String authors = (authorsData as List<dynamic>)
         .map((e) => e['attributes']['name'])
         .join(", ");
 
-    manga.tags = tags;
-    manga.description = description;
-    manga.authors = authors;
+    message['manga'].tags = tags;
+    message['manga'].description = description;
+    message['manga'].authors = authors;
+
+    return message['manga'];
+  }
+
+  @override
+  Future<void> getFullMangaData(Manga manga) async {
+    final uri = Uri.parse(manga.url);
+    final client = Client();
+
+    try {
+      final body = (await get(uri)).body;
+
+      final ids = manga.authors!.split(", ");
+      final authorsUri =
+          Uri.https(MDDomains.api, MDPaths.author, MDQueries.ids(ids));
+      final authorsBody = (await get(authorsUri)).body;
+
+      final message = {
+        'manga': manga,
+        'body': body,
+        'authorsBody': authorsBody
+      };
+
+      final fullManga = await compute(parseFullMangaData, message);
+      manga.tags = fullManga.tags;
+      manga.description = fullManga.description;
+      manga.authors = fullManga.authors;
+    } finally {
+      client.close();
+    }
   }
 
   Future<Manga> getMinMangaData(dynamic data) async {
@@ -208,16 +333,23 @@ class MangaDex implements MangaSource {
             (element) => element['type'] == 'cover_art'))?['attributes']
         ['fileName'];
 
+    final ids = (data['relationships'] as List<dynamic>)
+        .where((element) => element['type'] == 'author')
+        .map((e) => e['id'])
+        .toList(growable: false);
+
     String url = MDHelper.toMangaUri(data['id']);
     String title = data['attributes']['title'].values.first;
     String status = toBeginningOfSentenceCase(data['attributes']['status'])!;
     String cover = MDHelper.toCoverUrl(data['id'], fileName);
+    String authors = ids.join(", ");
 
     return Manga(
         url: url,
         title: title,
         status: status,
         cover: cover,
-        source: 'MangaDex');
+        source: 'MangaDex',
+        authors: authors);
   }
 }

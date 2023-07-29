@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -29,6 +28,8 @@ class MangaPage extends StatefulWidget {
 }
 
 class _MangaPageState extends State<MangaPage> {
+  bool isRefreshing = false;
+
   @override
   void dispose() {
     super.dispose();
@@ -48,8 +49,6 @@ class _MangaPageState extends State<MangaPage> {
           cacheManager: GlobalImageCacheManager(),
           cacheKey: widget.manga.url,
         ),
-        size: const Size(50, 50),
-        region: const Rect.fromLTRB(10, 10, 40, 40),
         maximumColorCount: 8);
 
     return FutureBuilder<List<dynamic>>(
@@ -62,10 +61,19 @@ class _MangaPageState extends State<MangaPage> {
           : Future.wait([palette]),
       builder: (_, snapshot) {
         if (snapshot.hasError) {
-          NavigationManager().back();
-          showSnackbar(context, Snackbar(content: Text('${snapshot.error}')),
-              duration: const Duration(seconds: 5));
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          Future.delayed(const Duration(seconds: 1)).whenComplete(() {
+            NavigationManager().back();
+            showInfoBar(context, snapshot.error.toString());
+          });
+        } else if (snapshot.hasData && snapshot.data!.length > 1) {
+          if (chapters.length != snapshot.data![0].length) {
+            chapters.addAll(snapshot.data![0]);
+            chapters.sort((a, b) =>
+                double.parse(b.chapter).compareTo(double.parse(a.chapter)));
+          }
+          manga.hasCompleteData = true;
+        } else if (snapshot.connectionState == ConnectionState.waiting ||
+            isRefreshing) {
           return SizedBox(
               width: double.infinity,
               child: Column(
@@ -75,14 +83,6 @@ class _MangaPageState extends State<MangaPage> {
                     gapHeight(),
                     const ProgressBar()
                   ]));
-        } else if (snapshot.hasData && snapshot.data!.length > 1) {
-          if (chapters.length != snapshot.data![0].length) {
-            chapters.addAll(snapshot.data![0]);
-            chapters.sort((a, b) =>
-                double.parse(b.chapter).compareTo(double.parse(a.chapter)));
-          }
-
-          manga.hasCompleteData = true;
         }
 
         return Mica(
@@ -103,7 +103,7 @@ class _MangaPageState extends State<MangaPage> {
                           palette: snapshot.data!.length > 1
                               ? snapshot.data![2]
                               : snapshot.data![0],
-                          onRefresh: refreshManga)),
+                          onRefresh: _refreshManga)),
             ),
           ),
         );
@@ -111,7 +111,7 @@ class _MangaPageState extends State<MangaPage> {
     );
   }
 
-  void refreshManga() {
+  void _refreshManga() {
     final sources = context.read<SourceProvider>().sources;
     final manga = widget.manga;
     final chapters = widget.manga.chapters;
@@ -126,9 +126,12 @@ class _MangaPageState extends State<MangaPage> {
         }
         chapters.sort((a, b) =>
             double.parse(b.chapter).compareTo(double.parse(a.chapter)));
+        isRefreshing = false;
         MangaManager().save();
       });
     });
+
+    setState(() => isRefreshing = true);
   }
 }
 
@@ -324,16 +327,6 @@ class _MangaInfoState extends State<MangaInfo> {
                                             .map((e) => buildTag(context, e))
                                             .toList(),
                                       ),
-                                      Visibility(
-                                        visible:
-                                            widget.manga.description != null,
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 16.0),
-                                          child: Text(_getMinDscription() ?? "",
-                                              style: appTheme.body),
-                                        ),
-                                      ),
                                       gapHeight(32.0),
                                     ],
                                   ),
@@ -406,32 +399,46 @@ class _MangaInfoState extends State<MangaInfo> {
         ]),
         Padding(
           padding: const EdgeInsets.only(left: 250.0, right: 250.0, top: 24.0),
-          child: Mica(
-            borderRadius: BorderRadius.only(
-                topLeft: appTheme.brOuter.topLeft,
-                topRight: appTheme.brOuter.topRight),
-            child: Column(
-              children: [
-                Card(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                            '${widget.manga.chapters.length} Chapter${widget.manga.chapters.length == 1 ? '' : 's'}',
-                            style: appTheme.bodyStrong
-                                .apply(fontSizeFactor: 1.15)),
-                        IconButton(
-                            icon: const Icon(
-                              fui.FluentIcons.arrow_sort_24_regular,
-                              size: 16,
-                            ),
-                            onPressed: () {}),
-                      ],
-                    )),
-                const Divider(size: double.infinity)
-              ],
-            ),
+          child: Column(
+            children: [
+              Card(
+                  borderRadius: BorderRadius.only(
+                      topLeft: appTheme.brOuter.topLeft,
+                      topRight: appTheme.brOuter.topRight),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                          '${widget.manga.chapters.length} Chapter${widget.manga.chapters.length == 1 ? '' : 's'}',
+                          style:
+                              appTheme.bodyStrong.apply(fontSizeFactor: 1.15)),
+                      // IconButton(
+                      //     icon: const Icon(
+                      //       fui.FluentIcons.arrow_sort_24_regular,
+                      //       size: 16,
+                      //     ),
+                      //     onPressed: () {}),
+                      Row(
+                        children: [
+                          const Text('Sort by: '),
+                          gapWidth(4.0),
+                          ComboBox<String>(
+                            value: 'Chapter number',
+                            items: ['Chapter number', 'Upload date', 'Source']
+                                .map<ComboBoxItem<String>>((e) {
+                              return ComboBoxItem<String>(
+                                value: e,
+                                child: Text(e),
+                              );
+                            }).toList(),
+                            onChanged: (value) {},
+                          ),
+                        ],
+                      ),
+                    ],
+                  )),
+            ],
           ),
         ),
       ],

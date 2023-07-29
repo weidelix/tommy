@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_windows
+  connectivity_plus
   flutter_acrylic
   image_compression_flutter
   system_theme

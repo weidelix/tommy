@@ -13,7 +13,7 @@ void showMangaUpdater(BuildContext context) {
   overlayEntry = showSnackbar(
       context, MangaUpdater(onFinish: () => overlayEntry.remove()),
       alignment: AlignmentDirectional.bottomEnd,
-      duration: const Duration(seconds: 999));
+      duration: const Duration(seconds: 5));
 }
 
 class MangaUpdater extends StatefulWidget {
@@ -46,65 +46,67 @@ class _MangaUpdaterState extends State<MangaUpdater> {
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: InfoBar(
-          severity:
-              mangaCount > 0 ? InfoBarSeverity.info : InfoBarSeverity.error,
-          style: InfoBarThemeData(
-              decoration: (severity) => BoxDecoration(
-                  color: FluentTheme.of(context).cardColor,
-                  borderRadius: appTheme.brInner),
-              icon: (severity) {
-                if (severity == InfoBarSeverity.error) {
+      child: Mica(
+        child: InfoBar(
+            isIconVisible: mangaCount <= 0,
+            severity:
+                mangaCount > 0 ? InfoBarSeverity.info : InfoBarSeverity.error,
+            style: InfoBarThemeData(
+                decoration: (severity) => BoxDecoration(
+                    color: FluentTheme.of(context)
+                        .micaBackgroundColor
+                        .toAccentColor()
+                        .withOpacity(1.0),
+                    borderRadius: appTheme.brInner),
+                icon: (severity) {
                   return fui.FluentIcons.error_circle_24_regular;
-                }
-
-                return fui.FluentIcons.arrow_clockwise_24_regular;
-              }),
-          title: const Text(''),
-          content: Container(
-            height: 40,
-            constraints: const BoxConstraints(minWidth: 300, maxWidth: 300),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ValueListenableBuilder(
-                      valueListenable: currentManga,
-                      builder: (context, value, child) => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
+                }),
+            title: const Text(''),
+            content: Container(
+              height: 40,
+              constraints: const BoxConstraints(minWidth: 300, maxWidth: 300),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ValueListenableBuilder(
+                        valueListenable: currentManga,
+                        builder: (context, value, child) => Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  mangaCount > 0
+                                      ? "Checking for new chapters..."
+                                      : "No mangas to update",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: appTheme.bodyStrong,
+                                ),
                                 mangaCount > 0
-                                    ? "Checking for new chapters..."
-                                    : "No mangas to update",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: appTheme.bodyStrong,
-                              ),
-                              mangaCount > 0
-                                  ? Text(
-                                      ' ${mangaIndex.value.toInt() + 1}/${mangaCount.toInt()}',
-                                      style: appTheme.caption)
-                                  : const SizedBox.shrink()
-                            ],
-                          )),
-                  mangaCount > 0
-                      ? ValueListenableBuilder(
-                          valueListenable: mangaIndex,
-                          builder: (context, value, child) => SizedBox(
-                                width: double.infinity,
-                                child: ProgressBar(
-                                    value: (100.0 / mangaCount) *
-                                        ((value as double) + 1)),
-                              ))
-                      : Text('Add mangas to your library to update them',
-                          style: appTheme.caption)
-                ],
+                                    ? Text(
+                                        ' ${mangaIndex.value.toInt() + 1}/${mangaCount.toInt()}',
+                                        style: appTheme.caption)
+                                    : const SizedBox.shrink()
+                              ],
+                            )),
+                    mangaCount > 0
+                        ? ValueListenableBuilder(
+                            valueListenable: mangaIndex,
+                            builder: (context, value, child) => SizedBox(
+                                  width: double.infinity,
+                                  child: ProgressBar(
+                                      value: (100.0 / mangaCount) *
+                                          ((value as double) + 1)),
+                                ))
+                        : Text('Add mangas to your library to update them',
+                            style: appTheme.caption)
+                  ],
+                ),
               ),
-            ),
-          )),
+            )),
+      ),
     );
   }
 

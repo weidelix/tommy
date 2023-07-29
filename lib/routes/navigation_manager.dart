@@ -41,16 +41,19 @@ class NavigationManager {
   Future<bool> back() async {
     if (_instance.rootToMangaNavigator.currentState!.canPop()) {
       await _instance.rootToMangaNavigator.currentState!.maybePop();
+      _didPop = true;
       return true;
     }
 
     await _instance.mainNavigator.currentState!.maybePop();
-    return _instance.mainNavigator.currentState!.canPop();
+    _didPop = _instance.mainNavigator.currentState!.canPop();
+    return _didPop;
   }
 
   Future push(String route, [Object? arguments]) {
     if (route == _currentRoute) return Future.value();
 
+    _didPop = false;
     if (route.contains('Manga')) {
       return _instance.rootToMangaNavigator.currentState!
           .pushNamed(route, arguments: arguments);

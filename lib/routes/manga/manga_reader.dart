@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -76,24 +78,21 @@ class _ReaderState extends State<_Reader> {
                   future: pages,
                   builder: (context, snapshot) {
                     _constraints = constraints;
-                    if (snapshot.hasError) {
-                      showSnackbar(
-                        context,
-                        InfoBar(
-                          title: Text(snapshot.error.toString()),
-                        ),
-                      );
+                    if (snapshot.hasError && !NavigationManager().didPop) {
+                      Future.delayed(const Duration(seconds: 1))
+                          .whenComplete(() {
+                        NavigationManager().back();
+                        showInfoBar(context, snapshot.error.toString());
+                      });
                     } else if (snapshot.hasData) {
-                      int index = 0;
                       final images = snapshot.data!
                           .map((url) => StatefulBuilder(
                                 builder: (context, setState) => Page(
+                                    key: ValueKey(Random().nextInt(9999)),
                                     onError: () {
                                       setState(() {});
                                     },
-                                    url: url,
-                                    cacheKey: _currentChapter.url +
-                                        (index++).toString()),
+                                    url: url),
                               ))
                           .toList();
                       return Padding(
@@ -132,7 +131,7 @@ class _ReaderState extends State<_Reader> {
       });
       _controller.jumpTo(0);
     } else {
-      showSnackbar(context, const InfoBar(title: Text('No next chapter')));
+      showInfoBar(context, 'No next chapter');
     }
   }
 
@@ -146,8 +145,7 @@ class _ReaderState extends State<_Reader> {
       });
       _controller.jumpTo(0);
     } else {
-      showSnackbar(
-          context, const Snackbar(content: Text('No previous chapter')));
+      showInfoBar(context, 'No previous chapter');
     }
   }
 
@@ -232,17 +230,20 @@ class _ReaderState extends State<_Reader> {
   }
 }
 
-class Page extends StatelessWidget {
-  const Page(
-      {required this.url,
-      required this.cacheKey,
-      required this.onError,
-      Key? key})
+class Page extends StatefulWidget {
+  const Page({required this.url, required this.onError, Key? key})
       : super(key: key);
 
   final String url;
-  final String cacheKey;
   final void Function() onError;
+
+  @override
+  State<Page> createState() => _PageState();
+}
+
+class _PageState extends State<Page> {
+  late double? currProgress = 0;
+  late double? progress = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -252,25 +253,37 @@ class Page extends StatelessWidget {
 
   Widget _loadingBuilder(
       BuildContext context, String url, DownloadProgress download) {
-    double? progress = download.progress;
+    double? prevProgress = progress;
 
-    return Center(
-      child: ProgressRing(
-        value: progress != null ? progress * 100.0 : progress,
-      ),
-    );
+    if (download.progress != null) {
+      progress = (download.progress! * 100.0);
+    }
+
+    return TweenAnimationBuilder<double?>(
+        tween: Tween<double?>(begin: prevProgress, end: progress),
+        curve: Curves.ease,
+        duration: const Duration(milliseconds: 100),
+        builder: (context, value, child) {
+          return Center(
+            child: ProgressRing(
+              value: value,
+            ),
+          );
+        });
   }
 
   CachedNetworkImage _buildImageWidget(
       void Function(void Function()) setState) {
     return CachedNetworkImage(
       cacheManager: GlobalImageCacheManager(),
-      cacheKey: cacheKey,
-      imageUrl: url,
+      cacheKey: widget.url,
+      imageUrl: widget.url,
       progressIndicatorBuilder: _loadingBuilder,
-      errorWidget: (context, url, error) => Center(
-          child:
-              FilledButton(onPressed: onError, child: const Text('Refresh'))),
+      errorWidget: (context, url, error) {
+        return Center(
+            child: FilledButton(
+                onPressed: widget.onError, child: const Text('Refresh')));
+      },
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
       fadeInDuration: Duration.zero,

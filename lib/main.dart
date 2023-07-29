@@ -4,7 +4,6 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:xview/layout.dart';
 import 'package:xview/manga_manager.dart';
-import 'package:xview/sources/manga_updater.dart';
 import 'package:xview/theme.dart';
 import 'package:xview/user_preference.dart';
 
